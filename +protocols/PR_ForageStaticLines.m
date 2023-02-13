@@ -418,7 +418,7 @@ classdef PR_ForageStaticLines < protocols.protocol
     end
    
     %******************** THIS IS THE BIG FUNCTION *************
-    function drop = state_and_screen_update(o,currentTime,x,y) 
+    function drop = state_and_screen_update(o,currentTime,x,y,varargin)  
 %         disp([o.state currentTime-o.startTime o.TrialDur])
         drop = 0; % initialize
         

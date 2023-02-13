@@ -56,6 +56,20 @@ classdef eyetrack_eyelink < marmoview.eyetrack
         end
     end
     
+    function starttrial(STARTCLOCK,STARTCLOCKTIME)
+        tstring = sprintf('dataFile_InsertString "TRIALSTART:TRIALNO:%5i %2d %2d %2d %2d %2d %2d"',...
+                           handles.A.j,STARTCLOCK(1:6));   % code the sixlet
+        STARTMESSAGE = str2double(sprintf('%02d', STARTCLOCK));
+        eyetrack_eyelink.sendcommand(tstring,STARTMESSAGE);      
+    end
+
+    function endtrial(STARTCLOCK,STARTCLOCKTIME)
+        tstring = sprintf('dataFile_InsertString "TRIALENDED:TRIALNO:%5i %2d %2d %2d %2d %2d %2d"',...
+                           handles.A.j,ENDCLOCK(1:6));   % code the sixlet
+        ENDMESSAGE = str2double(sprintf('%02d', ENDCLOCK));
+        eyetrack_eyelink.sendcommand(tstring,ENDMESSAGE);
+    end
+
     function closefile(o)
         if o.EyeDump 
            Eyelink('CloseFile'); 

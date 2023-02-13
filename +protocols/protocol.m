@@ -57,7 +57,7 @@ classdef protocol < matlab.mixin.Copyable % copyable handle class
     
     keepgoing = continue_run_trial(o,screenTime)
    
-    drop = state_and_screen_update(o,currentTime,x,y) 
+    drop = state_and_screen_update(o,currentTime,x,y,varargin)  
      
     Iti = end_run_trial(o)
     

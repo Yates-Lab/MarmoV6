@@ -458,7 +458,7 @@ classdef PR_FixFlash_ProceduralNoise < handle
     end
    
     %******************** THIS IS THE BIG FUNCTION *************
-    function drop = state_and_screen_update(o,currentTime,x,y) 
+    function drop = state_and_screen_update(o,currentTime,x,y,varargin)  
         drop = 0;
         %******* THIS PART CHANGES WITH EACH PROTOCOL ****************
 

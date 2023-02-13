@@ -12,6 +12,7 @@ classdef eyetrack_dummy < marmoview.behavior
   % dependent properties, calculated on the fly...
   properties (SetAccess = public, GetAccess = public)
     EyeDump logical
+    UseAsEyeTracker logical
   end
     
     methods
@@ -20,11 +21,13 @@ classdef eyetrack_dummy < marmoview.behavior
             % initialise input parser
             p = inputParser;
             p.addParameter('EyeDump',true,@islogical); % default 1, do EyeDump
+            p.addParameter('UseAsEyeTracker',true,@islogical); % default 1, use this as the eyetracker if set up
             p.parse(varargin{:});
             
             args = p.Results;
             o = o@marmoview.behavior(varargin{:});
             o.EyeDump = args.EyeDump;
+            o.UseAsEyeTracker = args.UseAsEyeTracker;
             
             % configure the tracker and initialize...
         end
@@ -45,7 +48,13 @@ classdef eyetrack_dummy < marmoview.behavior
         function pause(~)
         end
         
-        function endtrial(~)
+        function starttrial(~,varargin) %should be just two inputs but (~,~) throws and error?
+        end
+        
+        function endtrial(~,varargin)
+        end
+
+        function close(~)
         end
         
         function [x,y] = getgaze(~)
