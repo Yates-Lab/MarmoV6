@@ -82,6 +82,10 @@ classdef treadmill_dummy < marmoview.behavior
             self.frameCounter = self.frameCounter + 1;
         end 
         
+        function starttrial(STARTCLOCK,STARTCLOCKTIME)
+            reset(self)
+        end
+
         function reset(self)
             self.frameCounter = 1;
             self.locationSpace(:) = nan;

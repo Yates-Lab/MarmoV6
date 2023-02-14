@@ -103,6 +103,10 @@ classdef treadmill_arduino_oldslow < matlab.mixin.Copyable
             self.frameCounter = self.frameCounter + 1;
         end 
         
+        function starttrial(STARTCLOCK,STARTCLOCKTIME)
+            reset(self)
+        end
+
         function reset(self)
             resetCount(self.encoder); 
             self.frameCounter = 1;

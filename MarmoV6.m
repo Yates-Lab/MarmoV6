@@ -155,11 +155,13 @@ function MarmoV6_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.reward = marmoview.feedback_dummy(handles);
     % TODO: Figure out best way to do this
 
-    if isprop(handles.reward, 'volume')
-        handles.A.juiceVolume = handles.reward.volume;
-    else
-        handles.A.juiceVolume = 0;
-    end
+    handles.A.juiceVolume = handles.reward.volume;
+    handles.A.juiceUnits = handles.reward.units;
+%     if isprop(handles.reward, 'volume')
+%         handles.A.juiceVolume = handles.reward.volume;
+%     else
+%         handles.A.juiceVolume = 0;
+%     end
 
     handles.A.juiceCounter = 0; % Initialize, juice counter is reset when loading a protocol
 
@@ -337,7 +339,7 @@ function Initialize_Callback(hObject, eventdata, handles)
     cd(handles.settingsPath);
     [handles.SI,handles.PI] = BackImage;
     cd(handles.taskPath);
-    % INITIALIZE THE Back Image Protocl 
+    % INITIALIZE THE Back Image Protocol 
     handles.PRI = protocols.PR_BackImage(handles.A.window);
     handles.PRI.generate_trialsList(handles.SI,handles.PI);
     handles.PRI.initFunc(handles.SI, handles.PI);
@@ -509,7 +511,8 @@ function ClearSettings_Callback(hObject, eventdata, handles)
     handles.PR.closeFunc();  % de-initialize any objects 
     handles.PRI.closeFunc(); % close the back-ground image protocol
     handles.lastRunWasImage = false;
-    
+   
+
     % REFORMAT DATA FILES TO CONDENSED STRUCT
     CondenseAppendedData(hObject, handles)
     
@@ -520,6 +523,7 @@ function ClearSettings_Callback(hObject, eventdata, handles)
     c = handles.A.c;
     dx = handles.A.dx;
     dy = handles.A.dy;
+
     % TODO: how do we want to handle calibration?
 %     if ~handles.S.DummyEye 
 %         save([handles.supportPath 'MarmoViewLastCalib.mat'],'c','dx','dy');
@@ -542,7 +546,8 @@ function ClearSettings_Callback(hObject, eventdata, handles)
     handles.P = struct;
     handles.SI = handles.S;
     handles.PI = struct;
-    % If juicer delivery volume was changed during the previous protocol,
+
+    % If juice delivery volume was changed during the previous protocol,
     % return it to default. Also add the juice counter for the juice button.
     % fprintf(handles.A.pump,['0 VOL ' num2str(handles.S.pumpDefVol)]);
     % handles.reward.volume = handles.S.pumpDefVol; % milliliters
@@ -824,29 +829,9 @@ function RunTrial_Callback(hObject, eventdata, handles)
         for i=1:length(handles.outputs)
             handles.outputs{i}.starttrial(STARTCLOCK,STARTCLOCKTIME);
         end
-        %TODO Add handles.treadmill.reset() to handles.treadmill.starttrial
+        
        
-        % if (S.DataPixx) % replace the datapixx strobe with a generic call to 
-        %    datapixx.strobe(63,0);  % send all bits on to mark trial start 
-        % end
-        
-        % THIS IS AN INPUT STROBE: NEED TO SEND A MESSAGE TO THE EYETRACKERS / INPUTS
-        %TODO: move to inputs.starttrial for eyetrack_eyelink
-        % %***********************
-        % tstring = sprintf('dataFile_InsertString "TRIALSTART:TRIALNO:%5i %2d %2d %2d %2d %2d %2d"',...
-        %                    handles.A.j,STARTCLOCK(1:6));   % code the sixlet
-        % STARTMESSAGE = str2double(sprintf('%02d', STARTCLOCK));
-        % handles.eyetrack.sendcommand(tstring,STARTMESSAGE);
-        
-        %***********************************************************
-
-        % if (S.DataPixx)
-        %     for k = 1:6
-        %        datapixx.strobe(STARTCLOCK(k),0);
-        %     end
-        % end
-        %**************************************************
-        
+      
         %%%%% Start trial loop %%%%%
         rewardtimes = [];
         runloop = 1;
@@ -888,11 +873,20 @@ function RunTrial_Callback(hObject, eventdata, handles)
             % THIS IS THE MAIN PROTOCOL STATE UPDATE METHOD
             %"DROP" is a droplet of juice
             drop = PR.state_and_screen_update(currentTime,x,y,handles.inputs);
-
+            % TODO: DECISION on whether inputs should be handled within
+            % PR.state_and_screen_update. Probably yes, but not eyetracker?
+            
             % treadmill, this should be handled by the relevant
             % PR.state_and_screen_update with inputs
-            %TODO: move to state_and_screen_update
+            %TODO: move to state_and_screen_update?
             %drop = handles.treadmill.afterFrame(currentTime, drop);
+
+            %Additional independant rewards based on inputs (eg treadmill
+            %distance)
+            for i=1:length(handles.inputs)
+                drop = handles.inputs{i}.afterFrame(currentTime, drop);
+            end
+
 
             %******* before the next screen flush (since drop command takes time). only deliver drop if there is alot of time
             % Don't give a drop of juice if it will drop a frame
@@ -951,26 +945,6 @@ function RunTrial_Callback(hObject, eventdata, handles)
         end
         
 
-        %TODO MOVE ENDTRIAL SIGNALS TO FUNCTIONS
-        % %******* the data pix strobe will take about 0.5 ms **********
-        % if (S.DataPixx)
-        %    datapixx.strobe(62,0);  % send all bits on but first (254) to mark trial end  
-        % end
-        %****** AGAIN this is a place for timing event to synch up trial ends 
-        % this takes about 2 ms to send VPX command string
-%         tstring = sprintf('dataFile_InsertString "TRIALENDED:TRIALNO:%5i %2d %2d %2d %2d %2d %2d"',...
-%                            handles.A.j,ENDCLOCK(1:6));   % code the sixlet
-%         ENDMESSAGE = str2double(sprintf('%02d', ENDCLOCK));
-%         handles.eyetrack.sendcommand(tstring,ENDMESSAGE);
-%         handles.eyetrack.endtrial();
-        % %****** send the rest of the sixlet via DataPixx
-        % % this sixlet of numbers takes about 2 ms, but not used for time strobe
-        % if (S.DataPixx)
-        %    for k = 1:6
-        %        datapixx.strobe(ENDCLOCK(k),0);
-        %    end
-        % end
-        %**********************************************************
         
         %******** Any final clean-up for PR in the trial
         Iti = PR.end_run_trial();
@@ -1039,8 +1013,7 @@ function RunTrial_Callback(hObject, eventdata, handles)
         D.rewardtimes = rewardtimes;    % log the time of juice pulses
         D.juiceButtonCount = handles.A.juiceCounter; % SUPPLEMENTARY JUICE DURING THE TRIAL
         D.juiceVolume = A.juiceVolume; % THE VOLUME OF JUICE PULSES DURING THE TRIAL
-%         D.treadmill = copy(handles.treadmill); % is this the best way?
-%        D.treadmill.locationSpace(D.treadmill.frameCounter:end,:) = [];
+        D.juiceUnits = A.juiceUnits; % THE units OF JUICE PULSES DURING THE TRIAL
  
         %Save all inputs and outputs
         D.inputs = (handles.inputs); % do we need to use the copy function?
@@ -1071,13 +1044,10 @@ function RunTrial_Callback(hObject, eventdata, handles)
         
         % UPDATE IN CASE JUICE VOLUME WAS CHANGED DURING END TRIAL
         % TODO: HANDLE ALL FEEDBACK HERE
+
         if handles.A.juiceVolume ~= A.juiceVolume
             fprintf(A.pump,['0 VOL ' num2str(A.juiceVolume/1000)]);
-            if handles.S.solenoid
-                set(handles.JuiceVolumeText,'String',[num2str(A.juiceVolume) ' ms']);
-            else
-                set(handles.JuiceVolumeText,'String',[num2str(A.juiceVolume) ' ul']);
-            end
+            set(handles.JuiceVolumeText,'String',[num2str(A.juiceVolume) A.juiceUnits]);
         end
 
         % UPDATE THE TASK RELATED STRUCTURES IN CASE OF LEAVING THE RUN LOOP
@@ -1623,11 +1593,21 @@ function Refresh_Trials_Callback(hObject, eventdata, handles)
 %******** NOTE: if MarmoView hangs or crashes, you would
 %******** still be able to call this routine on what is saved
 function CondenseAppendedData(hObject, handles)
-    
+           
     guidata(hObject,handles); drawnow;
     A = handles.A;   % get the A struct (carries output file names)
+
     %******* go to outputPath and load current data
     if ~strcmp(A.outputFile,'none')  % could be in state with no open file
+        
+        % Copy mfile as of time of running for worst case scenario recovery
+        % Cost is a few kB, per trial can grow large, so we want to do it once
+        fPR=fopen([handles.taskPath '\+protocols\PR_' handles.S.protocol '.m']);
+        %D.PR_mfile=fread(fPR);
+        PR_mfile=fread(fPR);
+        fclose(fPR);
+
+
         %cd(handles.outputPath);             % goto output directory
         if exist(A.outputFile,'file')
             NewOutput = [A.outputFile(1:(end-4)),'z.mat'];
@@ -1642,7 +1622,7 @@ function CondenseAppendedData(hObject, handles)
             end
             clear zdata;
             %********
-            save(fullfile(handles.outputPath,NewOutput),'S','D');   % append file
+            save(fullfile(handles.outputPath,NewOutput),'S','D','PR_mfile');   % append file
             clear D;
             fprintf('Data file %s reformatted.\n',NewOutput);
         end

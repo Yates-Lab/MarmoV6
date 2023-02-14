@@ -10,6 +10,7 @@
 classdef feedback_dummy < marmoview.feedback_liquid & marmoview.feedback_sound
     properties
         volume double = 0.0
+        units string = 'ml'
     end
     
     methods

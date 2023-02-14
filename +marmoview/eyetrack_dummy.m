@@ -48,7 +48,11 @@ classdef eyetrack_dummy < marmoview.behavior
         function pause(~)
         end
         
-        function starttrial(~,varargin) %should be just two inputs but (~,~) throws and error?
+        function starttrial(~,varargin) %should be just two inputs but (~,~) throws an error?
+        end
+
+        function drop = afterFrame(~,varargin) %(~,currenttime,drop)
+            drop=varargin{2};
         end
         
         function endtrial(~,varargin)

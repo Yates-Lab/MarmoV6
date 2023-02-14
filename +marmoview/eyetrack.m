@@ -46,6 +46,9 @@ classdef eyetrack < matlab.mixin.Copyable & handle
         function pause(~)
         end
         
+        function afterFrame(~,~)
+        end
+
         function endtrial(~)
         end
         
