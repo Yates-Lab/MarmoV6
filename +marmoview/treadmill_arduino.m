@@ -116,6 +116,11 @@ classdef treadmill_arduino < matlab.mixin.Copyable
             end
         end
         
+        function starttrial(STARTCLOCK,STARTCLOCKTIME)
+            reset(self)
+        end
+
+
         function reset(self)
             IOPort('Write', self.arduinoUno, 'reset');
             self.frameCounter = 1;

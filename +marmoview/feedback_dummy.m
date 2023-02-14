@@ -7,19 +7,20 @@
 
 % 30-05-2016 - Shaun L. Cloherty <s.cloherty@ieee.org>
 
-classdef feedback_dummy < marmoview.liquid & marmoview.sound
+classdef feedback_dummy < marmoview.feedback_liquid & marmoview.feedback_sound
     properties
         volume double = 0.0
+        units string = 'ml'
     end
     
     methods
         function o = feedback_dummy(h,varargin)
-            o = o@marmoview.liquid(h);
-            o = o@marmoview.sound(h);
+            o = o@marmoview.feedback_liquid(h);
+            o = o@marmoview.feedback_sound(h);
         end
         
         function deliver(o)
-            o.deliver@marmoview.sound();
+            o.deliver@marmoview.feedback_sound();
         end
         
         function r = report(o)

@@ -608,7 +608,10 @@ classdef PR_ForageProceduralNoise < protocols.protocol
     end
    
     %******************** THIS IS THE BIG FUNCTION *************
-    function drop = state_and_screen_update(o,currentTime,x,y) 
+    function drop = state_and_screen_update(o,currentTime,x,y, varargin) 
+         if ~isempty(varargin)
+             inputs=varargin;
+         end
         
         drop = 0; % initialize
         
@@ -669,6 +672,7 @@ classdef PR_ForageProceduralNoise < protocols.protocol
         %****************************************   
         
 %         Screen('DrawingFinished', o.winPtr);
+
     end
     
     function Iti = end_run_trial(o)

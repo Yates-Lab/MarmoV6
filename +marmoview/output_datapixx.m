@@ -45,6 +45,25 @@ classdef output_datapixx < output
             Datapixx('RegWrRd');
         end
 
+        function starttrial(STARTCLOCK,STARTCLOCKTIME)
+            % replace the datapixx strobe with a generic call to
+            datapixx.strobe(63,0);  % send all bits on to mark trial start 
+
+            for k = 1:6
+                datapixx.strobe(STARTCLOCK(k),0);
+            end
+        end
+
+        function endtrial(ENDCLOCK,ENDCLOCKTIME)
+            %******* the data pix strobe will take about 0.5 ms **********
+            datapixx.strobe(62,0);% send all bits on but first (254) to mark trial end 
+
+            %****** send the rest of the sixlet via DataPixx
+           for k = 1:6
+               datapixx.strobe(ENDCLOCK(k),0);
+           end
+        end
+
         function analogOut(~, open_time, chan, TTLamp)
             %datapixxanalogOut    Send a TTL pulse through the Analog Out
             % Send a [TTLamp] volt signal out the channel [chan], for [open_time] seconds

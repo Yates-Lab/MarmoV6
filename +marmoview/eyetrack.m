@@ -11,6 +11,7 @@ classdef eyetrack < matlab.mixin.Copyable & handle
   % dependent properties, calculated on the fly...
   properties (SetAccess = public, GetAccess = public)
     EyeDump logical
+    UseAsEyeTracker logical
   end
     
     methods
@@ -19,10 +20,12 @@ classdef eyetrack < matlab.mixin.Copyable & handle
             % initialise input parser
             p = inputParser;
             p.addParameter('EyeDump',true,@islogical); % default 1, do EyeDump
+            p.addParameter('UseAsEyeTracker',true,@islogical); % default 1, do EyeDump
             p.parse(varargin{:});
             
             args = p.Results;
             o.EyeDump = args.EyeDump;
+            o.UseAsEyeTracker = args.UseAsEyeTracker;
             
             % configure the tracker and initialize...
         end
@@ -43,6 +46,9 @@ classdef eyetrack < matlab.mixin.Copyable & handle
         function pause(~)
         end
         
+        function afterFrame(~,~)
+        end
+
         function endtrial(~)
         end
         

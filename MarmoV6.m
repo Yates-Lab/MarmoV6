@@ -1,30 +1,30 @@
-function varargout = MarmoV5(varargin)
-% MarmoV5 M-file for MarmoV5.fig
+function varargout = MarmoV6(varargin)
+% MarmoV6 M-file for MarmoV6.fig
 %
-%      THIS IS MarmoV5 VERSION 1B, THIS CORRESPONDS TO THE VERSION TEXT
-%      IN THE MarmoV5.fig FILE
+%      THIS IS MarmoV6 VERSION 1B, THIS CORRESPONDS TO THE VERSION TEXT
+%      IN THE MarmoV6.fig FILE
 %
-%      MarmoV5, by itself, creates a new MarmoV5 or raises the existing
+%      MarmoV6, by itself, creates a new MarmoV6 or raises the existing
 %      singleton*.
 %
-%      H = MarmoV5 returns the handle to a new MarmoV5 or the handle to
+%      H = MarmoV6 returns the handle to a new MarmoV6 or the handle to
 %      the existing singleton*.
 %
-%      MarmoV5('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in MarmoV5.M with the given input arguments.
+%      MarmoV6('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in MarmoV6.M with the given input arguments.
 %
-%      MarmoV5('Property','Value',...) creates a new MarmoV5 or raises the
+%      MarmoV6('Property','Value',...) creates a new MarmoV6 or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before MarmoV5_OpeningFcn gets called.  An
+%      applied to the GUI before MarmoV6_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to MarmoV5_OpeningFcn via varargin.
+%      stop.  All inputs are passed to MarmoV6_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.    Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help MarmoV5
+% Edit the above text to modify the response to help MarmoV6
 
 % Last Modified by GUIDE v2.5 23-Sep-2019 17:01:59
 
@@ -32,8 +32,8 @@ function varargout = MarmoV5(varargin)
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @MarmoV5_OpeningFcn, ...
-                   'gui_OutputFcn',  @MarmoV5_OutputFcn, ...
+                   'gui_OpeningFcn', @MarmoV6_OpeningFcn, ...
+                   'gui_OutputFcn',  @MarmoV6_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -48,15 +48,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before MarmoV5 is made visible.
-function MarmoV5_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before MarmoV6 is made visible.
+function MarmoV6_OpeningFcn(hObject, eventdata, handles, varargin)
     % This function has no output args, see OutputFcn.
     % hObject    handle to figure
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-    % varargin   command line arguments to MarmoV5 (see VARARGIN)
+    % varargin   command line arguments to MarmoV6 (see VARARGIN)
 
-    % Choose default command line output for MarmoV5
+    % Choose default command line output for MarmoV6
     handles.output = hObject;
 
     %%%%% IMPORTANT GROUNDWORK FOR THE GUI IS PLACED HERE %%%%%%%%%%%%%%%%%%%%%
@@ -68,7 +68,7 @@ function MarmoV5_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.settingsPath = fullfile(handles.taskPath, 'Settings');
     % Output directory, all data will be saved here!
     handles.outputPath = fullfile(handles.taskPath, 'Output');
-    % Support data directory, data to support MarmoV5 or its protocols can be
+    % Support data directory, data to support MarmoV6 or its protocols can be
     % kept here unintrusively (e.g. eye calibration values or marmoset images)
     handles.supportPath = fullfile(handles.taskPath, 'SupportData');
     %****** start with no settings file
@@ -93,7 +93,7 @@ function MarmoV5_OpeningFcn(hObject, eventdata, handles, varargin)
 
     handles.eyeTraceRadius = 15;
     % This C structure is never changed until a protocol is cleared or
-    % MarmoV5 is exited, until then, it may be reset to the C values using
+    % MarmoV6 is exited, until then, it may be reset to the C values using
     % the ResetCalib callback.
 
     % CREATE THE STRUCTURES USED BY ALL PROTOCOLS
@@ -111,7 +111,7 @@ function MarmoV5_OpeningFcn(hObject, eventdata, handles, varargin)
 
     % LOAD RIG SETTINGS TO S, THIS IS RELOADED FOR EACH PROTOCOL, SO IT SHOULD
     % BE LOCATED IN A DIRECTORY IN MATLAB'S PATH, I SUGGEST THE
-    % 'MarmoV5\SupportFunctions' DIRECTORY
+    % 'MarmoV6\SupportFunctions' DIRECTORY
     handles.outputSubject = 'none';
     S = MarmoViewRigSettings;
     S.subject = handles.outputSubject;
@@ -136,7 +136,7 @@ function MarmoV5_OpeningFcn(hObject, eventdata, handles, varargin)
     numInputs = numel(S.inputs);
     handles.inputs = cell(numInputs,1);
     for i = 1:numInputs
-        assert(ismember(handles.S.inputs{i}, fieldnames(handles.S)), 'MarmoV5.m line 139: requested input needs field of that name')
+        assert(ismember(handles.S.inputs{i}, fieldnames(handles.S)), 'MarmoV6.m line 139: requested input needs field of that name')
         handles.inputs{i} = marmoview.(handles.S.inputs{i})(handles.S.(handles.S.inputs{i}));
     end
 
@@ -145,7 +145,7 @@ function MarmoV5_OpeningFcn(hObject, eventdata, handles, varargin)
     numOutputs = numel(S.outputs);
     handles.outputs = cell(numOutputs,1);
     for i = 1:numOutputs
-        assert(ismember(handles.S.outputs{i}, fieldnames(handles.S)), 'MarmoV5.m line 148: requested outputs needs parameter struct field of that name')
+        assert(ismember(handles.S.outputs{i}, fieldnames(handles.S)), 'MarmoV6.m line 148: requested outputs needs parameter struct field of that name')
         handles.outputs{i} = marmoview.(handles.S.outputs{i})(handles.S.(handles.S.outputs{i}));
     end
 
@@ -155,11 +155,13 @@ function MarmoV5_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.reward = marmoview.feedback_dummy(handles);
     % TODO: Figure out best way to do this
 
-    if isprop(handles.reward, 'volume')
-        handles.A.juiceVolume = handles.reward.volume;
-    else
-        handles.A.juiceVolume = 0;
-    end
+    handles.A.juiceVolume = handles.reward.volume;
+    handles.A.juiceUnits = handles.reward.units;
+%     if isprop(handles.reward, 'volume')
+%         handles.A.juiceVolume = handles.reward.volume;
+%     else
+%         handles.A.juiceVolume = 0;
+%     end
 
     handles.A.juiceCounter = 0; % Initialize, juice counter is reset when loading a protocol
 
@@ -221,7 +223,7 @@ function MarmoV5_OpeningFcn(hObject, eventdata, handles, varargin)
     guidata(hObject, handles);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = MarmoV5_OutputFcn(hObject, eventdata, handles)  %#ok<*INUSL>
+function varargout = MarmoV6_OutputFcn(hObject, eventdata, handles)  %#ok<*INUSL>
     % varargout  cell array for returning output args (see VARARGOUT);
     % hObject    handle to figure
     % eventdata  reserved - to be defined in a future version of MATLAB
@@ -337,7 +339,7 @@ function Initialize_Callback(hObject, eventdata, handles)
     cd(handles.settingsPath);
     [handles.SI,handles.PI] = BackImage;
     cd(handles.taskPath);
-    % INITIALIZE THE Back Image Protocl 
+    % INITIALIZE THE Back Image Protocol 
     handles.PRI = protocols.PR_BackImage(handles.A.window);
     handles.PRI.generate_trialsList(handles.SI,handles.PI);
     handles.PRI.initFunc(handles.SI, handles.PI);
@@ -509,7 +511,8 @@ function ClearSettings_Callback(hObject, eventdata, handles)
     handles.PR.closeFunc();  % de-initialize any objects 
     handles.PRI.closeFunc(); % close the back-ground image protocol
     handles.lastRunWasImage = false;
-    
+   
+
     % REFORMAT DATA FILES TO CONDENSED STRUCT
     CondenseAppendedData(hObject, handles)
     
@@ -520,6 +523,7 @@ function ClearSettings_Callback(hObject, eventdata, handles)
     c = handles.A.c;
     dx = handles.A.dx;
     dy = handles.A.dy;
+
     % TODO: how do we want to handle calibration?
 %     if ~handles.S.DummyEye 
 %         save([handles.supportPath 'MarmoViewLastCalib.mat'],'c','dx','dy');
@@ -542,7 +546,8 @@ function ClearSettings_Callback(hObject, eventdata, handles)
     handles.P = struct;
     handles.SI = handles.S;
     handles.PI = struct;
-    % If juicer delivery volume was changed during the previous protocol,
+
+    % If juice delivery volume was changed during the previous protocol,
     % return it to default. Also add the juice counter for the juice button.
     % fprintf(handles.A.pump,['0 VOL ' num2str(handles.S.pumpDefVol)]);
     % handles.reward.volume = handles.S.pumpDefVol; % milliliters
@@ -576,7 +581,7 @@ function ClearSettings_Callback(hObject, eventdata, handles)
     ChangeLight(handles.TaskLight,[.5 .5 .5]);
     
     %****** RE-ENABLE THE SUBJECT ENTRY, in case want to change subject and
-    %****** continue the program without closing MarmoV5 (should be rare)
+    %****** continue the program without closing MarmoV6 (should be rare)
     handles.OutputPanel.Visible = 'On';
     handles.OutputPrefixEdit.Enable = 'Off';
     handles.OutputSubjectEdit.Enable = 'On';   %user can edit this!
@@ -663,7 +668,7 @@ function RunTrial_Callback(hObject, eventdata, handles)
     handles.PauseTrial.Enable = 'On';
     %***********************************************
 
-    % TODO: do we want to log data when MarmoV5 is paused
+    % TODO: do we want to log data when MarmoV6 is paused
     % unpause the inputs
     for i = 1:numel(handles.inputs)
         handles.inputs{i}.unpause();
@@ -807,7 +812,7 @@ function RunTrial_Callback(hObject, eventdata, handles)
                 
             end
         end
-        assert(eyechecker==1,'MarmoV5 ln 776: one and only one input can be the active eyetracker method')
+        assert(eyechecker==1,'MarmoV6 ln 776: one and only one input can be the active eyetracker method')
         
      
         
@@ -824,29 +829,9 @@ function RunTrial_Callback(hObject, eventdata, handles)
         for i=1:length(handles.outputs)
             handles.outputs{i}.starttrial(STARTCLOCK,STARTCLOCKTIME);
         end
-        %TODO Add handles.treadmill.reset() to handles.treadmill.starttrial
+        
        
-        % if (S.DataPixx) % replace the datapixx strobe with a generic call to 
-        %    datapixx.strobe(63,0);  % send all bits on to mark trial start 
-        % end
-        
-        % THIS IS AN INPUT STROBE: NEED TO SEND A MESSAGE TO THE EYETRACKERS / INPUTS
-        %TODO: move to inputs.starttrial for eyetrack_eyelink
-        % %***********************
-        % tstring = sprintf('dataFile_InsertString "TRIALSTART:TRIALNO:%5i %2d %2d %2d %2d %2d %2d"',...
-        %                    handles.A.j,STARTCLOCK(1:6));   % code the sixlet
-        % STARTMESSAGE = str2double(sprintf('%02d', STARTCLOCK));
-        % handles.eyetrack.sendcommand(tstring,STARTMESSAGE);
-        
-        %***********************************************************
-
-        % if (S.DataPixx)
-        %     for k = 1:6
-        %        datapixx.strobe(STARTCLOCK(k),0);
-        %     end
-        % end
-        %**************************************************
-        
+      
         %%%%% Start trial loop %%%%%
         rewardtimes = [];
         runloop = 1;
@@ -888,11 +873,20 @@ function RunTrial_Callback(hObject, eventdata, handles)
             % THIS IS THE MAIN PROTOCOL STATE UPDATE METHOD
             %"DROP" is a droplet of juice
             drop = PR.state_and_screen_update(currentTime,x,y,handles.inputs);
-
+            % TODO: DECISION on whether inputs should be handled within
+            % PR.state_and_screen_update. Probably yes, but not eyetracker?
+            
             % treadmill, this should be handled by the relevant
             % PR.state_and_screen_update with inputs
-            %TODO: move to state_and_screen_update
+            %TODO: move to state_and_screen_update?
             %drop = handles.treadmill.afterFrame(currentTime, drop);
+
+            %Additional independant rewards based on inputs (eg treadmill
+            %distance)
+            for i=1:length(handles.inputs)
+                drop = handles.inputs{i}.afterFrame(currentTime, drop);
+            end
+
 
             %******* before the next screen flush (since drop command takes time). only deliver drop if there is alot of time
             % Don't give a drop of juice if it will drop a frame
@@ -951,26 +945,6 @@ function RunTrial_Callback(hObject, eventdata, handles)
         end
         
 
-        %TODO MOVE ENDTRIAL SIGNALS TO FUNCTIONS
-        % %******* the data pix strobe will take about 0.5 ms **********
-        % if (S.DataPixx)
-        %    datapixx.strobe(62,0);  % send all bits on but first (254) to mark trial end  
-        % end
-        %****** AGAIN this is a place for timing event to synch up trial ends 
-        % this takes about 2 ms to send VPX command string
-%         tstring = sprintf('dataFile_InsertString "TRIALENDED:TRIALNO:%5i %2d %2d %2d %2d %2d %2d"',...
-%                            handles.A.j,ENDCLOCK(1:6));   % code the sixlet
-%         ENDMESSAGE = str2double(sprintf('%02d', ENDCLOCK));
-%         handles.eyetrack.sendcommand(tstring,ENDMESSAGE);
-%         handles.eyetrack.endtrial();
-        % %****** send the rest of the sixlet via DataPixx
-        % % this sixlet of numbers takes about 2 ms, but not used for time strobe
-        % if (S.DataPixx)
-        %    for k = 1:6
-        %        datapixx.strobe(ENDCLOCK(k),0);
-        %    end
-        % end
-        %**********************************************************
         
         %******** Any final clean-up for PR in the trial
         Iti = PR.end_run_trial();
@@ -1039,8 +1013,7 @@ function RunTrial_Callback(hObject, eventdata, handles)
         D.rewardtimes = rewardtimes;    % log the time of juice pulses
         D.juiceButtonCount = handles.A.juiceCounter; % SUPPLEMENTARY JUICE DURING THE TRIAL
         D.juiceVolume = A.juiceVolume; % THE VOLUME OF JUICE PULSES DURING THE TRIAL
-%         D.treadmill = copy(handles.treadmill); % is this the best way?
-%        D.treadmill.locationSpace(D.treadmill.frameCounter:end,:) = [];
+        D.juiceUnits = A.juiceUnits; % THE units OF JUICE PULSES DURING THE TRIAL
  
         %Save all inputs and outputs
         D.inputs = (handles.inputs); % do we need to use the copy function?
@@ -1071,13 +1044,10 @@ function RunTrial_Callback(hObject, eventdata, handles)
         
         % UPDATE IN CASE JUICE VOLUME WAS CHANGED DURING END TRIAL
         % TODO: HANDLE ALL FEEDBACK HERE
+
         if handles.A.juiceVolume ~= A.juiceVolume
             fprintf(A.pump,['0 VOL ' num2str(A.juiceVolume/1000)]);
-            if handles.S.solenoid
-                set(handles.JuiceVolumeText,'String',[num2str(A.juiceVolume) ' ms']);
-            else
-                set(handles.JuiceVolumeText,'String',[num2str(A.juiceVolume) ' ul']);
-            end
+            set(handles.JuiceVolumeText,'String',[num2str(A.juiceVolume) A.juiceUnits]);
         end
 
         % UPDATE THE TASK RELATED STRUCTURES IN CASE OF LEAVING THE RUN LOOP
@@ -1623,11 +1593,21 @@ function Refresh_Trials_Callback(hObject, eventdata, handles)
 %******** NOTE: if MarmoView hangs or crashes, you would
 %******** still be able to call this routine on what is saved
 function CondenseAppendedData(hObject, handles)
-    
+           
     guidata(hObject,handles); drawnow;
     A = handles.A;   % get the A struct (carries output file names)
+
     %******* go to outputPath and load current data
     if ~strcmp(A.outputFile,'none')  % could be in state with no open file
+        
+        % Copy mfile as of time of running for worst case scenario recovery
+        % Cost is a few kB, per trial can grow large, so we want to do it once
+        fPR=fopen([handles.taskPath '\+protocols\PR_' handles.S.protocol '.m']);
+        %D.PR_mfile=fread(fPR);
+        PR_mfile=fread(fPR);
+        fclose(fPR);
+
+
         %cd(handles.outputPath);             % goto output directory
         if exist(A.outputFile,'file')
             NewOutput = [A.outputFile(1:(end-4)),'z.mat'];
@@ -1642,7 +1622,7 @@ function CondenseAppendedData(hObject, handles)
             end
             clear zdata;
             %********
-            save(fullfile(handles.outputPath,NewOutput),'S','D');   % append file
+            save(fullfile(handles.outputPath,NewOutput),'S','D','PR_mfile');   % append file
             clear D;
             fprintf('Data file %s reformatted.\n',NewOutput);
         end
