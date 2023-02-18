@@ -46,7 +46,43 @@ switch RigName
         
         S.eyetrack_dummy = [];
         S.feedback_sound = [];
-       
+  
+    case 'testIBL'
+
+        S.inputs = {'eyetrack_dummy', 'steering_wheel_arduino'};
+        S.outputs = [];
+        S.feedback = {'feedback_sound','feedback_newera'};
+
+        S.eyetrack_dummy = [];
+        S.steering_wheel_arduino = [];
+        S.feedback_sound = [];
+        S.feedback_newera = true;
+        S.steering_wheel_arduino.port = '/dev/ttyACM0';
+  
+
+
+%         S.newera = true;         % use Newera juice pump
+%         S.eyetracker = 'none';   % modify to incorporate eye tracker 
+%         S.arrington = false;      % use Arrington eye tracker
+%         S.DummyEye = true;       % use mouse instead of eye tracker
+%         S.solenoid = false;      % use solenoid juice delivery
+%         S.DummyScreen = false;   % don't use a Dummy Display
+%         S.EyeDump = true;        % store all eye position data
+%         S.DataPixx = false;
+        
+        % setup screen
+        S.monitor = 'ASUS-XG27UQR';         % Monitor used for display window
+        S.screenNumber = 1;                % Designates the display for task stimuli
+        S.frameRate = 60;                 % Frame rate of screen in Hz *this monitor can down sample to 240Hz 
+        S.screenRect = [0 0 3840 2160];     %  Screen dimensions in pixels
+        S.screenWidth = 59.6;                 % Width of screen (cm)
+        S.centerPix =  [1920 1080];           % Pixels of center of the screen
+        S.guiLocation = [200 100 890 660];
+        S.bgColour = 127; %127; %186;  % use 127 if gamma corrected
+        S.gamma = 2.56;
+        S.screenDistance = 56;              % Distance of eye to screen (cm)
+        S.pixPerDeg = PixPerDeg(S.screenDistance,S.screenWidth,S.screenRect(3));
+         
 
     otherwise % laptop development
 

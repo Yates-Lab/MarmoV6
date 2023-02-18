@@ -88,15 +88,17 @@ classdef eyetrack_dummy < marmoview.behavior
         function sendcommand(~,~,~)
         end
         
-        function C=calibinit(~,S)
-            cx = round((S.screenRect(3)-S.screenRect(1))/2) + S.screenRect(1);
-            cy = round((S.screenRect(4)-S.screenRect(2))/2) + S.screenRect(2);
-            dx = 1;   % stay in pixel coordinates
-            dy = -1;  % in pixel coordinates, don't scale, but do invert y
-            C.dx = dx;
-            C.dy = dy;
-            C.c = [cx cy];
-        end
+        function (~,~,~)
+        %                 %FULLY HARDCODED!!! FIXING THIS ASAP
+%                 handles.calibFile = 'Using Mouse as Eye';
+%                 set(handles.CalibFilename,'String',handles.calibFile);
+%                 cx = round((S.screenRect(3)-S.screenRect(1))/2) + S.screenRect(1);
+%                 cy = round((S.screenRect(4)-S.screenRect(2))/2) + S.screenRect(2);
+%                 dx = 1;   % stay in pixel coordinates
+%                 dy = -1;  % in pixel coordinates, don't scale, but do invert y
+%                 handles.C.dx = dx;
+%                 handles.C.dy = dy;
+%                 handles.C.c = [cx cy];
 
 
 

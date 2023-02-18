@@ -12,6 +12,8 @@ classdef eyetrack < matlab.mixin.Copyable & handle
   properties (SetAccess = public, GetAccess = public)
     EyeDump logical
     UseAsEyeTracker logical
+    x
+    y
   end
     
     methods
@@ -33,6 +35,9 @@ classdef eyetrack < matlab.mixin.Copyable & handle
         function init(~,~)
         end
 
+        function readinput(self,~)
+        end
+
         function startfile(~,~)
             % no file is saved if using mouse
         end
@@ -52,8 +57,16 @@ classdef eyetrack < matlab.mixin.Copyable & handle
         function endtrial(~)
         end
         
-        function [x,y] = getgaze(~)
+        function [x,y] = getgaze(self,~)
             [x,y] = GetMouse;
+            self.x = x;
+            self.y = y;     
+            %other specs depend on screen and position
+        end
+        
+        function [x,y] = getinput(self,~)
+            x = self.x;
+            y = self.y;
             %other specs depend on screen and position
         end
         

@@ -76,20 +76,21 @@ function MarmoV6_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.SettingsFile,'String',handles.settingsFile);
 
 
-    % TODO: should be subject dependent?
-    handles.calibFile = 'MarmoViewLastCalib.mat';
-    set(handles.CalibFilename,'String',handles.calibFile);
-
-    % if exist(handles.calibFile, 'file')
-    %     tmp = load([handles.supportPath handles.calibFile]);
-    %     handles.C.dx = tmp.dx;
-    %     handles.C.dy = tmp.dy;
-    %     handles.C.c = tmp.c;
-    % else
-    handles.C.dx = .1;
-    handles.C.dy = .1;
-    handles.C.c = [0 0];
-    % end
+    % TODO: should be eyetracker and subject dependent, so we need to first
+    % load up rig settings and subject name
+%     handles.calibFile = 'MarmoViewLastCalib.mat';
+%     set(handles.CalibFilename,'String',handles.calibFile);
+% 
+%     if exist(handles.calibFile, 'file')
+%         tmp = load([handles.supportPath filesep handles.calibFile]);
+%         handles.C.dx = tmp.dx;
+%         handles.C.dy = tmp.dy;
+%         handles.C.c = tmp.c;
+%     else
+%         handles.C.dx = .1;
+%         handles.C.dy = .1;
+%         handles.C.c = [0 0];
+%     end
 
     handles.eyeTraceRadius = 15;
     % This C structure is never changed until a protocol is cleared or
@@ -118,8 +119,7 @@ function MarmoV6_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.S = S;
 
 
-    % Load calibration variables into the A structure to be changed if needed
-    handles.A = handles.C;
+
     % Add in the plot handles to A in case handles isn't available
     % e.g. while running protocols)
     handles.A.EyeTrace = handles.EyeTrace;
@@ -130,15 +130,52 @@ function MarmoV6_OpeningFcn(hObject, eventdata, handles, varargin)
     handles.A.outputFile = 'none';
 
 
-
     % -------------------------------------------------------------------------
     % --- Inputs (e.g., eyetracking, treadmill, mouse, etc.)
     numInputs = numel(S.inputs);
     handles.inputs = cell(numInputs,1);
+
+    eyechecker=0;
     for i = 1:numInputs
         assert(ismember(handles.S.inputs{i}, fieldnames(handles.S)), 'MarmoV6.m line 139: requested input needs field of that name')
         handles.inputs{i} = marmoview.(handles.S.inputs{i})(handles.S.(handles.S.inputs{i}));
+
+        %cellfun
+        if handles.inputs{i}.UseAsEyeTracker
+            %Set up handles.eyetrack for direct calls later
+            handles.eyetrack=handles.inputs{i};
+            eyechecker=eyechecker+1;
+            
+            %find most recent calibration with that eyetracker, subject
+            %Calibdir=dir(fullfile(handles.supportPath, handles.eyetrack, handles.outputSubject))
+            % Buuuut outputSubject has not been loaded yet so take most
+            % subfolders for each tracker?
+            %Calibdir = dir(fullfile(handles.supportPath,(handles.S.inputs{i}), '*Calib.mat'));
+            % Or just prepend filename with tracker?
+            Calibdir = dir(fullfile(handles.supportPath,[(handles.S.inputs{i}) '.mat']));
+            
+            if ~isempty(Calibdir)
+                handles.calibFile= Calibdir.name(min(Calibdir.datenum));
+                tmp = load(fullfile(Calibdir,handles.calibFile));
+%                 exist(handles.calibFile, 'file')
+%                 tmp = load([handles.supportPath filesep handles.calibFile]);
+                handles.C.dx = tmp.dx;
+                handles.C.dy = tmp.dy;
+                handles.C.c = tmp.c;
+            else
+                handles.C=handles.eyetrack.calibinit(handles.S);
+%                     handles.C.dx = .1;
+%                     handles.C.dy = .1;
+%                     handles.C.c = [0 0];
+            end
+        end
     end
+    assert(eyechecker==1,'MarmoV6 ln 776: one and only one input can be the active eyetracker method')
+
+    % Load calibration variables into the A structure to be changed if needed
+    handles.A = handles.C;
+
+
 
     % -------------------------------------------------------------------------
     % --- Outputs (e.g., datapixx, synchronization routines, etc.)
@@ -151,7 +188,7 @@ function MarmoV6_OpeningFcn(hObject, eventdata, handles, varargin)
 
     %Set up a generic eyetrack class to be filled with an input and a
     %generic reward class to be filled with an output
-    handles.eyetrack = marmoview.eyetrack();
+    %handles.eyetrack = marmoview.eyetrack();
     handles.reward = marmoview.feedback_dummy(handles);
     % TODO: Figure out best way to do this
 
@@ -442,6 +479,7 @@ function Initialize_Callback(hObject, eventdata, handles)
     axis(h,[-eyeRad eyeRad -eyeRad eyeRad]);
     %*************************
     
+    
     % TODO: how do we handle dummy eye?
     % if handles.S.DummyEye
     %     EnableEyeCalibration(handles,'Off');  %dont update if Dummy, use mouse
@@ -671,7 +709,7 @@ function RunTrial_Callback(hObject, eventdata, handles)
     % TODO: do we want to log data when MarmoV6 is paused
     % unpause the inputs
     for i = 1:numel(handles.inputs)
-        handles.inputs{i}.unpause();
+        handles.inputs{i}.unpause(handles.inputs{i});
     end
     
     %********************************
@@ -786,34 +824,11 @@ function RunTrial_Callback(hObject, eventdata, handles)
 
         handles.FC.set_task(FP,TS);  % load values into class for plotting (FP)
                                     % and to label TimeSensitive states (TS)
-        
-        % TODO: eyetrack should be handled by inputs... 
-        % Task Controller flips first frame and logs the trial start
-        eyechecker=0;
-        for i=1:length(handles.inputs)
-            %Load other inputs here?
-            %handles.inputs{i}.pretrial
 
-            
-            %This is messy, TODO try to find UseAs.. flag directly with
-            %cellfun
-            if handles.inputs{i}.UseAsEyeTracker
-%                 %Method 1, set [ex,ey, pupil] from inputs
-%                 [ex,ey] = handles.inputs{i}.getgaze();
-%                 pupil = handles.inputs{i}.getpupil();
-%                 eyechecker=eyechecker+1;
-
-                %Method 2, set up handles.eyetrack for direct calls later
-                handles.eyetrack=handles.inputs{i};
-                eyechecker=eyechecker+1;
-                %Now can just can call this from now on (eg in calibration)
-                [ex,ey] = handles.eyetrack.getgaze();
-                pupil = handles.eyetrack.getpupil();
-                
-            end
-        end
-        assert(eyechecker==1,'MarmoV6 ln 776: one and only one input can be the active eyetracker method')
-        
+        %Eyetracking input object should
+        %already be set up
+        [ex,ey] = handles.eyetrack.getgaze();
+        pupil = handles.eyetrack.getpupil();
      
         
         %******* This is where to perform TimeStamp Syncing (start of trial)
@@ -852,13 +867,7 @@ function RunTrial_Callback(hObject, eventdata, handles)
             % (i.e., replay)
             for i=1:length(handles.inputs)
                 %Load other inputs here?
-                %handles.inputs{i}.frameupdate
-    
-                %Method1, from ln 776 cont
-%                 if handles.inputs{i}.UseAsEyeTracker
-%                     [ex,ey] = handles.inputs{i}.getgaze();
-%                     pupil = handles.inputs{i}.getpupil();
-%                 end
+                handles.inputs{i}.readinput(handles.inputs{i});
             end
             [ex,ey] = handles.eyetrack.getgaze();
             pupil = handles.eyetrack.getpupil();
@@ -936,12 +945,12 @@ function RunTrial_Callback(hObject, eventdata, handles)
         
         %THIS IS AN INPUT STROBE: NEED TO SEND A MESSAGE TO THE EYETRACKERS / INPUTS
         for i=1:length(handles.inputs)
-            handles.inputs{i}.endtrial(ENDCLOCK,ENDCLOCKTIME);
+            handles.inputs{i}.endtrial((handles.inputs{i}),ENDCLOCK,ENDCLOCKTIME);
         end
 
          % TODO: OUTPUT STROBING GOES HERE
         for i=1:length(handles.outputs)
-            handles.outputs{i}.endtrial(ENDCLOCK,ENDCLOCKTIME);
+            handles.outputs{i}.endtrial((handles.inputs{i}),ENDCLOCK,ENDCLOCKTIME);
         end
         
 
@@ -1018,6 +1027,10 @@ function RunTrial_Callback(hObject, eventdata, handles)
         %Save all inputs and outputs
         D.inputs = (handles.inputs); % do we need to use the copy function?
         D.outputs = (handles.outputs); %
+
+        %Save Calibration, it can change per trial
+        D.C=    handles.C;
+
 
         %***************
         % SAVE THE DATA
@@ -1602,7 +1615,7 @@ function CondenseAppendedData(hObject, handles)
         
         % Copy mfile as of time of running for worst case scenario recovery
         % Cost is a few kB, per trial can grow large, so we want to do it once
-        fPR=fopen([handles.taskPath '\+protocols\PR_' handles.S.protocol '.m']);
+        fPR=fopen([handles.taskPath filesep '+protocols' filesep 'PR_' handles.S.protocol '.m']);
         %D.PR_mfile=fread(fPR);
         PR_mfile=fread(fPR);
         fclose(fPR);

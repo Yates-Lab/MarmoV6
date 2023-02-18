@@ -48,7 +48,7 @@ classdef steering_wheel_arduino < matlab.mixin.Copyable
             ip.addParameter('port','/dev/ttyACM0');
             ip.addParameter('baud', 115200)
             ip.addParameter('scaleFactor', [])
-            ip.addParameter('gain', 80/100)
+            ip.addParameter('gain', 80)
             ip.addParameter('maxFrames', 5e3)
             ip.addParameter('UseAsEyeTracker', false)
             %ip.addParameter('rewardDist', 94.25)
@@ -227,12 +227,30 @@ classdef steering_wheel_arduino < matlab.mixin.Copyable
                 %Do you really want to do this??
             else
                 %Keep current value
-                wheelPos=wheelPos0/self.gain;
+                wheelPos=wheelPos0;
             end
                    
+            %% Noise check, threshold for per frame difference
+            % Noise check, if the value jumps more than a threshold from a median filter ignore
+%             if abs(wheelPos-wheelPos0)>4*(-1000/40) && abs(wheelPos-recent)>5*(-1000/40)%&& nnz(p.trial.wheel.trace)>3
+%                 %Keep current value
+%                 wheelPos=wheelPos0;
+%             elseif abs(wheelPos-recent)>8*(-1000/40) && nnz(p.trial.wheel.rawtrace)>5*(-1000/40)
+%                 %Lost the track
+%                 wheelPos=recent;
+%             end
+            
             %% Apply a transformation to the position to put it into nicer numbers
-            wheelPos= wheelPos *self.gain;   
+            %gain= 80;%gain = 10 bf Oct15 %used for a lot pre Sept21: 30; %p.wheel.gain maybe???
+            wheelPos= wheelPos/1000 *self.gain;   
         
+            %Update position
+            self.wheelPos=wheelPos;
+            %fprintf(2, '\nUpdating wheel position: %6.3f',p.trial.wheel.wheelPos);
+            
+            %TODO:Store a buffer line of previous positions, plot trace
+            %p.trial.wheel.lastcheck=0;
+                
             %Update trace
             self.trace = circshift(self.trace,-1);
             %% Debug
@@ -241,21 +259,8 @@ classdef steering_wheel_arduino < matlab.mixin.Copyable
                 dbstop
             end
             self.trace(end)=wheelPos;
-            figure(2)
-            hold off; plot(self.trace)
-
-            %Check against recent values
-            if abs(wheelPos-median(self.trace(:,end-10:end)))>(125*self.gain)
-                %NOISE ALERT, we want to fix this before this point but
-                %just in case, revert to last stable position
-                wheelPos=wheelPos0;
-            end
-
-           
-            %Update position
-            self.wheelPos=wheelPos;
-            %fprintf(2, '\nUpdating wheel position: %6.3f',p.trial.wheel.wheelPos);
             
+            figure()
         
             %% Drawing a graph for testing    
 %                 if p.trial.wheel.testmode==1
