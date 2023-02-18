@@ -14,6 +14,7 @@ follow these steps to make sure it is installed on you machine (You can run it o
 
 ### Steps
 
+0. Download and install Psychtoolbox for Matlab for your machine
 1. Fork the repository. Clone that fork to you own your own machine
 2. Open matlab, change to the MarmoV6 directory and add all paths
 
