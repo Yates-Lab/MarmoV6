@@ -571,10 +571,10 @@ classdef PR_IBLContrastGabor < handle
         % Dataplot 1, errors
         errors = [0 1 2 3 4 5;
             sum(o.D.error==0) sum(o.D.error==1) sum(o.D.error==2) sum(o.D.error==3) sum(o.D.error==4) sum(o.D.error==5)];
-        bar(A.DataPlot1,errors(1,:),errors(2,:));
-        title(A.DataPlot1,'Errors');
-        ylabel(A.DataPlot1,'Count');
-        set(A.DataPlot1,'XLim',[-.75 5.75]);
+%         bar(o.DataPlot1,errors(1,:),errors(2,:));
+%         title(o.DataPlot1,'Errors');
+%         ylabel(o.DataPlot1,'Count');
+%         set(o.DataPlot1,'XLim',[-.75 5.75]);
 
         % DataPlot2, fraction correct by spatial location (left or right trial)
         % Note that this plot will break down if multiple stimulus eccentricities 

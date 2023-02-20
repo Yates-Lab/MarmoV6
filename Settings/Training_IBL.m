@@ -81,6 +81,7 @@ P.FreqNum = 1;
 S.FreqNum = 'Numb of freqs:';
 
 P.contrast = 0.10;
+S.contrast = 'CHECK IF USED!';
 P.minContrast = 0;
 S.minContrast = 'Min contrast to test';
 P.maxContrast = 1;
