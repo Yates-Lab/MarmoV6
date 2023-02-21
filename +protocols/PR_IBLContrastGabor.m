@@ -317,7 +317,7 @@ classdef PR_IBLContrastGabor < handle
                 x0 = o.hProbe.position(1); %initial/current probe position
                 xm0 = o.P.xm0; % previous wheel position
                 dx = xm-xm0; % change in position of wheel in pixel space
-                disp(xm)
+                %disp(xm)
                 o.hProbe.position(1) = x0 + dx; %new position of probe in pixel space       
                 o.P.xm0 = xm; % Update xm0 and pass to o.P for next frame
                 

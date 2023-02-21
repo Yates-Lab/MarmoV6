@@ -247,6 +247,26 @@ classdef PR_ForageProceduralNoise < protocols.protocol
                     'randomizePhase', P.RandPhase);
                 
                o.hNoise.updateTextures(); % create the procedural texture
+
+
+           case 7 % Denser Garborium noise
+               o.NoiseHistory = nan(o.MaxFrame,3);
+               
+               % noise object is created here
+               o.hNoise = stimuli.densegabornoise(o.winPtr, 'pixPerDeg', S.pixPerDeg, 'numGabors', P.numGabors);
+               
+               x = P.noiseCenterX*S.pixPerDeg + S.centerPix(1);
+               y = -P.noiseCenterY*S.pixPerDeg + S.centerPix(2);
+               o.hNoise.position = [x y];
+               o.hNoise.radius = P.noiseRadius * S.pixPerDeg;
+               o.hNoise.contrast = P.noiseContrast;
+               o.hNoise.scaleRange = P.scaleRange;
+               o.hNoise.minScale = P.minScale;
+               o.hNoise.minSF = P.spfmin;
+               o.hNoise.sfRange =  P.spfrange;
+               
+               o.hNoise.updateEveryNFrames = ceil(S.frameRate / P.noiseFrameRate);
+               o.hNoise.updateTextures(); % create the procedural texture
                
        end
        %**********************************************************
@@ -483,6 +503,18 @@ classdef PR_ForageProceduralNoise < protocols.protocol
                      o.NoiseHistory(o.FrameCount,7) = o.hNoise.contrast;
                      
                      % time, orientation, cpd, phase, direction, speed, contrast
+
+                 case 7% Denser "Garborium" noise
+                     
+                     o.hNoise.afterFrame(); % update parameters
+                     o.hNoise.beforeFrame(); % draw
+                     
+                     %**********
+                     o.FrameCount = o.FrameCount + 1;
+                     % NOTE: store screen time in "continue_run_trial" after flip
+                     o.NoiseHistory(o.FrameCount,2) = o.hNoise.x(1);  % xposition of first gabor
+                     o.NoiseHistory(o.FrameCount,3) = o.hNoise.mypars(2);  
+                     
                      
              end
             %****************
