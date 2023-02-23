@@ -122,7 +122,14 @@ classdef densegabornoise < stimuli.stimulus
             
             % Size of support in pixels, derived from si:
             res = 2*obj.texWidth+1;
+
+            % Instead, derive this from largest gabor (lowest SF)
+            SFdeg=obj.minSF; %cyc/deg 
+            sizedeg=1.5./SFdeg; %1.5 cycles
+            res = ceil((2*sizedeg.*obj.pixPerDeg+1)); % scale to pixels
             
+
+            obj.texWidth= ceil((res-1)/2);
             % Initialize matrix with spec for all 'ngabors' patches to start off
             % identically:
             

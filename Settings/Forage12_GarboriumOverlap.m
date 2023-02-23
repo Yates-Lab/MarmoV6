@@ -56,7 +56,7 @@ P.fixRadius = 2.5;
 S.fixRadius = 'Probe reward radius(degs):';
 P.trialdur = 10; 
 S.trialdur = 'Trial Duration (s):';
-P.iti = 0.5;
+P.iti = 0.2;
 S.iti = 'Duration of intertrial interval (s):';
 P.mingap = 0.2;  
 S.mingap = 'Min gap to next target (s):';
@@ -76,7 +76,7 @@ P.probecon = 1.0; %0.50;
 S.probecon = 'Transparency of Probe (1-none, 0-gone):';
 P.proberange = 48; %a bit brighter
 S.proberange = 'Luminance range of grating (1-127):';
-P.stimEcc = 4.0;
+P.stimEcc = 2.0;
 S.stimEcc = 'Ecc of stimulus (degrees):';
 P.stimBound = 7.0;
 S.stimBound = 'Boundary if moving (degs):';
@@ -114,8 +114,11 @@ P.noisetype = 7; %Dense Gabor
 S.noisetype = 'Cannot change during protocol';
 
 
-P.spfmin = 5;  % will be [0.5 1 2 4 8 16]
+P.spfmin = 2;  % will be [0.5 1 2 4 8 16]
 S.spfmin = 'Minimum spat freq (cyc/deg):';
+
+P.spfrange = 40;   % use log spacing
+S.spfrange = 'Range of spat freqs (cyc/deg):';
 
 P.noiseCenterX = 0;
 S.noiseCenterX = 'Center of the noise patch (d.v.a):';
@@ -123,19 +126,16 @@ S.noiseCenterX = 'Center of the noise patch (d.v.a):';
 P.noiseCenterY = 0;
 S.noiseCenterY = 'Center of the noise patch (d.v.a):';
 
-P.noiseRadius = 20;
+P.noiseRadius = 5;
 S.noiseRadius = 'width of the noise patch (d.v.a):';
 
 P.numGabors = 8000;
 S.numGabors = 'Number of Gabors:';
 
-P.spfrange = 20;   % use log spacing
-S.spfrange = 'Range of spat freqs (cyc/deg):';
-
 P.noiseFrameRate = 60;
 S.noiseFrameRate = 'frame rate of the noise background:';
 
-P.noiseContrast = 1.0;
+P.noiseContrast = 0.1;
 S.noiseContrast = 'Contrast of the noise (0-1):';
 
 P.minScale = .1;
