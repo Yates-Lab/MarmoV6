@@ -2,7 +2,7 @@
 
 % 25-06-2016 - Shaun L. Cloherty <s.cloherty@ieee.org>
 
-classdef feedback_newera < marmoview.liquid
+classdef feedback_newera < marmoview.feedback_liquid
   % Wrapper class for New Era syringe pumps (see http://syringepump.com/).
   %
   % To see the public properties of this class, type
@@ -33,7 +33,7 @@ classdef feedback_newera < marmoview.liquid
     triggerMode
     alarmMode
     lowNoiseMode
-    volumeUnits
+    units
   end % properties
 
   % dependent properties, calculated on the fly...
@@ -164,7 +164,7 @@ classdef feedback_newera < marmoview.liquid
               newargs = varargin{2:end};
           end
       end
-      o = o@marmoview.liquid(newargs{:}); % call parent constructor
+      o = o@marmoview.feedback_liquid(newargs{:}); % call parent constructor
 
       % parse optional arguments
       args = newargs;
@@ -183,13 +183,15 @@ classdef feedback_newera < marmoview.liquid
       ip.addParameter('alarmMode', 0)
       ip.addParameter('lowNoiseMode', 0)
       ip.addParameter('triggerMode', 'T2', @(x) any(strcmp(x, {'F2', 'T2'})))
-      ip.addParameter('volumeUnits', 'UL', @(x) any(strcmp(x, {'ML', 'UL'})))
-
+      ip.addParameter('units', 'UL', @(x) any(strcmp(x, {'ML', 'UL'})))
       ip.parse(args{:});
 
       args = ip.Results;
       if exist('structArg', 'var')
-          args = mergeStruct(args, structArg);
+          names = fieldnames(structArg);
+          for ii=1:length(names)
+            args.(names{ii}) = structArg.(names{ii});
+          end
       end
       
 
@@ -198,7 +200,7 @@ classdef feedback_newera < marmoview.liquid
       o.triggerMode = args.triggerMode;
       o.alarmMode   = args.alarmMode;
       o.lowNoiseMode = args.lowNoiseMode;
-      o.volumeUnits  = args.volumeUnits;
+      o.units  = args.volumeUnits;
 
       o.address = args.address;
       
@@ -251,7 +253,7 @@ classdef feedback_newera < marmoview.liquid
         
         % use sndcmd instead
         flushin(o)
-        o.sndcmd(['VOL ' o.volumeUnits]);
+        o.sndcmd(['VOL ' o.units]);
         o.sndcmd(['AL ' o.alarmMode]);
         o.sndcmd(['LN ' o.lowNoiseMode]);
         o.sndcmd('DIR INF') % Infuse;

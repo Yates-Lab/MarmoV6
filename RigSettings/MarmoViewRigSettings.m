@@ -21,6 +21,54 @@ RigName = 'laptop';
 
 switch RigName
 
+
+    case 'testTDM'
+        S.inputs = {'eyetrack_dummy','treadmill_arduino'};
+        S.outputs = {};
+        S.feedback = {'feedback_newera'};%'feedback_sound',
+
+
+        %S.feedback_newera = true;  
+        S.feedback_newera.port = '/dev/ttyUSB0';              % use Newera juice pump
+        S.feedback_newera.pumpDiameter = 20;                % internal diameter of the juice syringe (mm)
+        S.feedback_newera.pumpRate = 20;                     % rate to deliver juice (ml/minute)
+        S.feedback_newera.pumpDefVol = 10;                % default dispensing volume (ml)
+
+
+        S.arrington = false;      % use Arrington eye tracker
+        S.DummyEye = true;       % use mouse instead of eye tracker
+        S.solenoid = false;      % use solenoid juice delivery
+        S.DummyScreen = false;   % don't use a Dummy Display
+        S.EyeDump = true;        % store all eye position data
+        S.DataPixx = false;
+
+        %S.treadmill_arduino.type = 'arduino';
+        S.treadmill_arduino.baud = 115200;
+        S.treadmill_arduino.port = '/dev/ttyACM0';
+        S.treadmill_arduino.scaleFactor = (94.25/5000); % circimference of wheel over ticks per rev
+        S.treadmill_arduino.rewardMode = 'distProb';
+        S.treadmill_arduino.rewardDist = 94.25/2/5; %DPR added the/5 for Brie 6-27-2022
+        S.treadmill_arduino.rewardProb = 1;
+        
+        % setup screen
+        S.monitor = 'ASUS-XG27UQR';         % Monitor used for display window
+        S.screenNumber = 1;                % Designates the display for task stimuli
+        S.frameRate = 60;                 % Frame rate of screen in Hz
+        S.screenRect = [0 0 3840 2160];     %  Screen dimensions in pixels
+        S.screenWidth = 59.6;                 % Width of screen (cm)
+        S.centerPix =  [1920 1080];           % Pixels of center of the screen
+        S.guiLocation = [200 100 890 660];
+        S.bgColour = 127; %127; %186;  % use 127 if gamma corrected
+        S.gamma = 1;
+        S.screenDistance = 50;              % Distance of eye to screen (cm)
+        S.pixPerDeg = PixPerDeg(S.screenDistance,S.screenWidth,S.screenRect(3));
+        
+        
+        S.eyetrack_dummy = [];
+        S.feedback_sound = [];        
+
+        
+
     case 'laptop'
         
         S.inputs = {'eyetrack_dummy'};

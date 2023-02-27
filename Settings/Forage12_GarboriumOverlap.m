@@ -113,7 +113,7 @@ S.showEye = 'Show the gaze indicator? (0 or 1):';
 P.noisetype = 7; %Dense Gabor
 S.noisetype = 'Cannot change during protocol';
 
-
+%try spfmin 1, spfrange 10, 800 gabors with noise cont at .05
 P.spfmin = 2;  % will be [0.5 1 2 4 8 16]
 S.spfmin = 'Minimum spat freq (cyc/deg):';
 

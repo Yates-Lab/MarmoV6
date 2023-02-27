@@ -12,9 +12,10 @@ classdef treadmill_arduino < matlab.mixin.Copyable
         scaleFactor double
         rewardMode char
         locationSpace double
-        maxFrames double
+        maxFrames double 
         rewardDist
         rewardProb
+        UseAsEyeTracker logical
     end
     
     properties (SetAccess = private, GetAccess = public)
@@ -36,6 +37,7 @@ classdef treadmill_arduino < matlab.mixin.Copyable
             ip.addParameter('maxFrames', 5e3)
             ip.addParameter('rewardDist', 94.25)
             ip.addParameter('rewardProb', 1)
+            ip.addParameter('UseAsEyeTracker',false,@islogical); % default false
             ip.parse(varargin{:});
             
             args = ip.Results;
@@ -116,10 +118,24 @@ classdef treadmill_arduino < matlab.mixin.Copyable
             end
         end
         
-        function starttrial(STARTCLOCK,STARTCLOCKTIME)
-            reset(self)
+        function init(~,~)
         end
 
+        function readinput(~,~)
+        end
+
+        function starttrial(self,STARTCLOCK,STARTCLOCKTIME)     
+            reset(self)
+        end
+        
+        function unpause(self,~)
+        end
+        
+        function pause(~)
+        end
+        
+        function endtrial(~,~,varargin)
+        end
 
         function reset(self)
             IOPort('Write', self.arduinoUno, 'reset');
