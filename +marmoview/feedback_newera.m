@@ -200,7 +200,7 @@ classdef feedback_newera < marmoview.feedback_liquid
       o.triggerMode = args.triggerMode;
       o.alarmMode   = args.alarmMode;
       o.lowNoiseMode = args.lowNoiseMode;
-      o.units  = args.volumeUnits;
+      o.units       = args.units;
 
       o.address = args.address;
       

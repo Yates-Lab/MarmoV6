@@ -73,7 +73,7 @@ classdef treadmill_arduino < matlab.mixin.Copyable
             self.locationSpace(self.frameCounter, 2) = timestamp;
             if ~isnan(count)
                 self.locationSpace(self.frameCounter,3:4) = count * [1 self.scaleFactor];
-            elseif isnan(count) && self.frameCounter == 1 % bad count on frame 1
+            elseif self.frameCounter == 1 % bad count on frame 1, was isnan(count) && self.frameCounter == 1 , but first frame usually unreliable
                 self.locationSpace(self.frameCounter,3:4) = 0;
             else % bad count not on frame 1, use previous sample
                 self.locationSpace(self.frameCounter,3:4) = self.locationSpace(self.frameCounter-1,3:4);
@@ -99,6 +99,9 @@ classdef treadmill_arduino < matlab.mixin.Copyable
             end
             
             out = self.locationSpace(self.frameCounter,5);
+            figure(2)
+            hold off; plot(self.locationSpace(:,3));
+        
             self.frameCounter = self.frameCounter + 1;
         end 
         
@@ -139,6 +142,7 @@ classdef treadmill_arduino < matlab.mixin.Copyable
 
         function reset(self)
             IOPort('Write', self.arduinoUno, 'reset');
+            self.nextReward = self.rewardDist;
             self.frameCounter = 1;
             self.locationSpace(:) = nan;
             IOPort('Flush', self.arduinoUno);

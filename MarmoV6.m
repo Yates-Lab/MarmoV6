@@ -381,7 +381,7 @@ classdef MarmoV6 < matlab.apps.AppBase
             %Set up a generic eyetrack class to be filled with an input and a
             %generic reward class to be filled with an output
             %app.eyetrack = marmoview.eyetrack();
-            app.reward = marmoview.feedback_dummy(app);
+            app.reward = marmoview.(app.S.feedback{1})(app.S.(app.S.feedback{1}));
             % TODO: Figure out best way to do this
         
             app.A.juiceVolume   = app.reward.volume;
@@ -741,7 +741,7 @@ classdef MarmoV6 < matlab.apps.AppBase
             set(app.StatusText,'Text',tstring);
         
             % Bring gui to front, should stay now that we aren't
-            % changing directories
+            % changing directories. But still disappears!
             movegui(app.MarmoV6UIFigure, 'onscreen');
             
            
