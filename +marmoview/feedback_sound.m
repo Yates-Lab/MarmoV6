@@ -5,9 +5,15 @@
 classdef feedback_sound < marmoview.feedback
   properties (SetAccess = private, GetAccess = private)
     s audioplayer
-  end 
-  
-  properties (Constant, Access = private)
+  end
+
+  properties (SetAccess = private, GetAccess = public)
+    %dummy units for gui
+%     volume double = 0.0
+%     units string = 'ml'
+%   end 
+%   
+%   properties (Constant, Access = private)
     fs = 16e3; % 16 kHz
   end
   

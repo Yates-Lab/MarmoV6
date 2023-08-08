@@ -390,7 +390,40 @@ classdef MarmoV6 < matlab.apps.AppBase
             app.A.juiceCounter = 0; % Initialize, juice counter is reset when loading a protocol
         
             %********************************************************
-        
+            %EYEDUMP PLOTTING OF EYETRACKING
+% 
+%             %******** ADDED VIA SHAUN ************************
+%             %******* and then Arrington wrapper by Jude ******
+%             if isfield(app.S, 'eyetracker') && ischar(app.S.eyetracker)
+%                 switch app.S.eyetracker
+%                     case 'OpenIris'
+%                         app.eyetrack = marmoview.eyetrack_OpenIris(hObject,'EyeDump',S.EyeDump);
+%                     case 'arrington'
+%                         app.eyetrack = marmoview.eyetrack_arrington(hObject,'EyeDump',S.EyeDump);
+%                     case 'ddpi'
+%                         app.eyetrack = marmoview.eyetrack_ddpi(hObject,'EyeDump',S.EyeDump);
+%                     case 'eyelink'
+%                         % if EYELINK, you must wait until initializing the protocol to setup
+%                         % the eye tracker .... for now, set it to a default object
+%                         app.eyetrack = marmoview.eyetrack();
+%                         app.S.eyelink = true;
+%                     otherwise
+%                         app.eyetrack = marmoview.eyetrack();
+%                 end
+%             else % dump to the old version
+%                 
+%                 if app.S.arrington % create an @arrington eyetrack object for eye position
+%                     app.eyetrack = marmoview.eyetrack_arrington(hObject,'EyeDump',S.EyeDump);
+%                 elseif app.S.eyelink
+%                     % if EYELINK, you must wait until initializing the protocol to setup
+%                     % the eye tracker .... for now, set it to a default object
+%                     app.eyetrack = marmoview.eyetrack();
+%                 else % no eyetrack, use @eyetrack object instead that uses mouse pointer
+%                     app.eyetrack = marmoview.eyetrack();
+%                 end
+%             end
+
+
             %********* add the task controller for storing eye movements, flipping
             %********* frames
             % WRITE THE CALIBRATION DATA INTO THE EYE TRACKER PANEL AND GET THE SIZES
@@ -451,7 +484,7 @@ classdef MarmoV6 < matlab.apps.AppBase
         end
 
         % Button pushed function: Background_Image
-        function Background_ImageButtonPushed(app, event)
+        function Background_ImageButtonPushed(app, eventdata)
             % This might not work the same way, previously it stored
             % guidata into a hObject ran an image, then restored the
             % hObject
@@ -461,7 +494,9 @@ classdef MarmoV6 < matlab.apps.AppBase
             app.runImage = true;
             app.runOneTrial = true; % keep running till paused, or true stop at one
             %guidata(hObject,handles);
-            RunTrial_Callback(app, eventdata)
+            %RunTrial_Callback(app, eventdata)
+
+            app.RunTrial.ButtonPushedFcn(app, eventdata)
             % it appears if handles changed, you need to regrab it
             % what lives in this function is the old copy of it
             %handles = guidata(hObject);
@@ -601,7 +636,7 @@ classdef MarmoV6 < matlab.apps.AppBase
             app.A.outputFile = strcat(app.outputPrefix,'_',app.outputSubject,...
                 '_',app.outputDate,'_',app.outputSuffix,'.mat');
             % If the file name already exists, iterate the suffix to a nonexistant file
-            while exist([app.outputPath app.A.outputFile],'file')
+            while exist(fullfile(app.outputPath,app.A.outputFile),'file') %exist([app.outputPath app.A.outputFile],'file')
                 i = i+1; app.outputSuffix = num2str(i,'%.2d');
                 app.A.outputFile = strcat(app.outputPrefix,'_',app.outputSubject,...
                     '_',app.outputDate,'_',app.outputSuffix,'.mat');
@@ -612,17 +647,17 @@ classdef MarmoV6 < matlab.apps.AppBase
         %TODO: DO WE NEED THIS BLOCK (.init) IF EVERYTHING GETS INITIALISED
         %ON FIRST CALL ALREADY
 
-%             % --- initialize inputs
-%             % This should start recording on the eye trackers / make sure
-%             % synchronization is ready
-%             for i = 1:numel(app.inputs)
-%                 app.inputs{i}.init(app);
-%             end
-%         
-%             % initialize outputs
-%             for i = 1:numel(app.outputs)
-%                 app.outputs{i}.init(app);
-%             end
+            % --- initialize inputs
+            % This should start recording on the eye trackers / make sure
+            % synchronization is ready
+            for i = 1:numel(app.inputs)
+                app.inputs{i}.startfile(); %app.A.outputFile
+            end
+            
+            % initialize outputs
+            for i = 1:numel(app.outputs)
+                app.outputs{i}.startfile(app);%app.A.outputFile
+            end
         %
         
             % Show the file name on the GUI
@@ -811,7 +846,9 @@ classdef MarmoV6 < matlab.apps.AppBase
             %       if ~app.S.DummyEye
             %          EnableEyeCalibration(handles,'On');
             %       else
-                EnableEyeCalibration(app,'Off');
+                                
+%                 EnableEyeCalibration(app,'Off');
+                EnableEyeCalibration(app,'On');
                 app.GraphZoomIn.Enable = 'On';
                 app.GraphZoomOut.Enable = 'On';
                 UpdateEyeText(app);
@@ -944,6 +981,7 @@ classdef MarmoV6 < matlab.apps.AppBase
             
                 %Eyetracking input object should
                 %already be set up
+                app.eyetrack.readinput();
                 [ex,ey] = app.eyetrack.getgaze();
                 pupil = app.eyetrack.getpupil();
             
@@ -955,6 +993,7 @@ classdef MarmoV6 < matlab.apps.AppBase
                 %THIS IS AN INPUT STROBE: NEED TO SEND A MESSAGE TO THE EYETRACKERS / INPUTS
                 for i=1:length(app.inputs)
                     app.inputs{i}.starttrial(STARTCLOCK,STARTCLOCKTIME);
+                    %app.inputs{i}.starttrial(app.inputs{i},STARTCLOCK,STARTCLOCKTIME);
                 end
             
                  % TODO: OUTPUT STROBING GOES HERE
@@ -993,12 +1032,13 @@ classdef MarmoV6 < matlab.apps.AppBase
                     % TODO: this is the place where from these point on, 
                     % values are locked in andeverything should be determined
                     %**********************************
-
+                        
                     %%%% BALISTIC FROM HERE ON %%%%%%%%%%%%%%%%%%%%%%%%%%
             
                     % THIS IS THE MAIN PROTOCOL STATE UPDATE METHOD
-                    %"DROP" is a droplet of juice
-                    drop = PR.state_and_screen_update(currentTime,x,y,app.inputs);
+                    %"DROP" is a droplet of juice, reward based on on state
+                    %and state update 
+                    drop = PR.state_and_screen_update(currentTime,x,y,app.inputs,app.outputs);
             
             
                     %Additional independant rewards based on inputs (eg treadmill
@@ -1006,7 +1046,8 @@ classdef MarmoV6 < matlab.apps.AppBase
                     for i=1:length(app.inputs)
                         drop = app.inputs{i}.afterFrame(currentTime, drop);
                     end
-            
+                    
+                    %disp(drop)
             
                     %******* before the next screen flush (since drop command takes time). only deliver drop if there is alot of time
                     % Don't give a drop of juice if it will drop a frame
@@ -1022,7 +1063,7 @@ classdef MarmoV6 < matlab.apps.AppBase
                             rewardtimes = [rewardtimes droptime];
                             app.reward.deliver();
                         else
-                            dropreject = dropreject + 1;
+                            dropreject = dropreject + 1
                         end
                     end
             
@@ -1042,6 +1083,7 @@ classdef MarmoV6 < matlab.apps.AppBase
                         A.c = app.A.c;
                         A.dx = app.A.dx;
                         A.dy = app.A.dy;
+                        [A.c,A.dx,A.dy] ;
                         app.FC.update_eye_calib(A.c,A.dx,A.dy);
                     end
             
@@ -1062,7 +1104,7 @@ classdef MarmoV6 < matlab.apps.AppBase
             
                  % TODO: OUTPUT STROBING GOES HERE
                 for i=1:length(app.outputs)
-                    app.outputs{i}.endtrial((app.inputs{i}),ENDCLOCK,ENDCLOCKTIME);
+                    app.outputs{i}.endtrial(ENDCLOCK,ENDCLOCKTIME);
                 end
             
             
@@ -1074,9 +1116,10 @@ classdef MarmoV6 < matlab.apps.AppBase
                 % PLOT THE EYETRACE and enforce an ITI interval
                 itiStart = GetSecs;
             
-                subplot(app.EyeTrace); hold off;  % clear old plot
-            
-                PR.plot_trace(app); hold on; % command to plot on eye traces
+                %subplot(app.EyeTrace); hold off;  % clear old plot
+                %axes(app.EyeTrace)
+                hold(app.EyeTrace,'off')
+                PR.plot_trace(app); hold(app.EyeTrace,'on')%hold on; % command to plot on eye traces
             
                 app.FC.plot_eye_trace_and_flips(app);  %plot the eye traces
             
@@ -1321,7 +1364,7 @@ classdef MarmoV6 < matlab.apps.AppBase
             end
             
             for i=1:length(app.outputs)
-                app.outputs{i}.closefile();
+                app.outputs{i}.closefile(app);
             end
             
             %****** ADDED VIA SHAUN **********
@@ -1454,7 +1497,7 @@ classdef MarmoV6 < matlab.apps.AppBase
         end
 
         % Button pushed function: Calib_Screen
-        function Calib_ScreenButtonPushed(app, event)
+        function Calib_ScreenButtonPushed(app, eventdata)
             % If a bkgd parameter exists, flip frame with background color value
             % Screen('FillRect',app.A.window,uint8(0));
             % Screen('Flip',app.A.window);
@@ -1463,7 +1506,8 @@ classdef MarmoV6 < matlab.apps.AppBase
             hold_dir = app.SI.ImageDirectory;
             app.PRI.load_image_dir(['SupportData',filesep,'ForagePoint']);
             %guidata(hObject,handles);
-            RunTrial_Callback(hObject, eventdata)
+            %RunTrial_Callback(app,eventdata)
+            app.RunTrial.ButtonPushedFcn(app, eventdata)
             % it appears if handles changed, you need to regrab it
             % what lives in this function is the old copy of it
             %handles = guidata(hObject);
@@ -1545,16 +1589,19 @@ classdef MarmoV6 < matlab.apps.AppBase
 
         % Value changed function: JuiceVolumeEdit
         function JuiceVolumeEditValueChanged(app, event)
-            volUL = str2double(value); % microliters
+            vol=app.JuiceVolumeEdit.Value;
+            volUL = str2double(vol); % microliters
         
             % fprintf(app.A.pump,['0 VOL ' volML]);
             app.reward.volume = volUL; % milliliters
             if app.S.solenoid
-                set(app.JuiceVolumeText,'String',[vol ' ms']); % displayed in microliters!!
+                %set(app.JuiceVolumeText.Text,'String',[vol ' ms']); % displayed in microliters!!
+                app.JuiceVolumeText.Text=[vol ' ms'];
             else
-                set(app.JuiceVolumeText,'String',[vol ' ul']);
+                %set(app.JuiceVolumeText.Text,'String',[vol ' ul']);
+                app.JuiceVolumeText.Text=[vol ' ul'];
             end
-            set(hObject,'String',''); % why?
+            %set(hObject,'String',''); % why?
             app.A.juiceVolume = volUL; % <-- A.juiceVolume should *always* be in milliliters!
             
         end
@@ -1666,6 +1713,7 @@ classdef MarmoV6 < matlab.apps.AppBase
             app.A.c(1) = app.A.c(1) - ...
                 app.shiftSize*app.A.dx*app.S.pixPerDeg;
             %guidata(hObject);
+            %app.A.c(1)
             UpdateEyeText(app);
             UpdateEyePlot(app);            
         end
@@ -1772,9 +1820,9 @@ classdef MarmoV6 < matlab.apps.AppBase
             % Make sure the new final trial is a positive integer
             if newFinal > 0
                 % Update the final trial
-                handles.A.finish = newFinal;
+                app.A.finish = newFinal;
                 % Set the count
-                set(handles.TrialMaxText,'String',get(hObject,'String'));
+                app.TrialMaxText.Text=num2str(value);
             end
             % Clear the edit string
             app.TrialMaxEdit.Value='';
@@ -1964,6 +2012,8 @@ classdef MarmoV6 < matlab.apps.AppBase
             app.EyeTrace = uiaxes(app.EyeTrackerPanel);
             app.EyeTrace.XLim = [-15 15];
             app.EyeTrace.YLim = [-15 15];
+            app.EyeTrace.XDir = 'reverse'; 
+            app.EyeTrace.YDir ="reverse";
             app.EyeTrace.FontSize = 12;
             app.EyeTrace.NextPlot = 'replace';
             app.EyeTrace.BusyAction = 'cancel';

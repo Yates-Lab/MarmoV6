@@ -42,6 +42,8 @@ classdef PR_ForageProceduralNoise < protocols.protocol
     FixCount = 0      % count fixation of probe events
     FixHit = []       % list of positions where probe hits occured
     FixMax = 20        % maximum fixations in any trial
+    %**** Photodiode flash timing
+    Flashtime = [];
     %**********************************
     D struct = struct()        % store PR data for end plot stats, will store dotmotion array
   end
@@ -335,6 +337,7 @@ classdef PR_ForageProceduralNoise < protocols.protocol
           o.error = 0;
           o.FrameCount = 0;
           o.PFrameCount = 0;
+          o.Flashtime = [];
           %********
           if (P.trialdur < 20)
               o.TrialDur = P.trialdur;
@@ -413,8 +416,14 @@ classdef PR_ForageProceduralNoise < protocols.protocol
                  case 1 % "Hartley" noise
                      
                      o.hNoise.afterFrame(); % update parameters
-                     o.hNoise.beforeFrame(); % draw
-                     
+                     if isfield(o.S,'stereoMode') && o.S.stereoMode>0
+                         Screen('SelectStereoDrawBuffer', o.winPtr, 0);
+                         o.hNoise.beforeFrame(); % draw
+                         Screen('SelectStereoDrawBuffer', o.winPtr, 1);
+                         o.hNoise.beforeFrame(); % draw
+                     else
+                        o.hNoise.beforeFrame(); % draw
+                     end
                      %**********
                      o.FrameCount = o.FrameCount + 1;
                      % NOTE: store screen time in "continue_run_trial" after flip
@@ -470,8 +479,14 @@ classdef PR_ForageProceduralNoise < protocols.protocol
                  case 4 % "Garborium" noise
                      
                      o.hNoise.afterFrame(); % update parameters
-                     o.hNoise.beforeFrame(); % draw
-                     
+                     if isfield(o.S,'stereoMode') && o.S.stereoMode>0
+                         Screen('SelectStereoDrawBuffer', o.winPtr, 0);
+                         o.hNoise.beforeFrame(); % draw
+                         Screen('SelectStereoDrawBuffer', o.winPtr, 1);
+                         o.hNoise.beforeFrame(); % draw
+                     else
+                        o.hNoise.beforeFrame(); % draw
+                     end
                      %**********
                      o.FrameCount = o.FrameCount + 1;
                      % NOTE: store screen time in "continue_run_trial" after flip
@@ -480,8 +495,14 @@ classdef PR_ForageProceduralNoise < protocols.protocol
                      
                  case 5 % dot spatial noise
                      o.hNoise.afterFrame(); % update parameters
-                     o.hNoise.beforeFrame(); % draw
-                     
+                     if isfield(o.S,'stereoMode') && o.S.stereoMode>0
+                         Screen('SelectStereoDrawBuffer', o.winPtr, 0);
+                         o.hNoise.beforeFrame(); % draw
+                         Screen('SelectStereoDrawBuffer', o.winPtr, 1);
+                         o.hNoise.beforeFrame(); % draw
+                     else
+                        o.hNoise.beforeFrame(); % draw
+                     end
                      %**********
                      o.FrameCount = o.FrameCount + 1;
                      % NOTE: store screen time in "continue_run_trial" after flip
@@ -490,8 +511,14 @@ classdef PR_ForageProceduralNoise < protocols.protocol
                  case 6 % drifting gratings
                      
                      o.hNoise.afterFrame(); % update parameters
-                     o.hNoise.beforeFrame(); % draw
-                     
+                     if isfield(o.S,'stereoMode') && o.S.stereoMode>0
+                         Screen('SelectStereoDrawBuffer', o.winPtr, 0);
+                         o.hNoise.beforeFrame(); % draw
+                         Screen('SelectStereoDrawBuffer', o.winPtr, 1);
+                         o.hNoise.beforeFrame(); % draw
+                     else
+                        o.hNoise.beforeFrame(); % draw
+                     end
                      %**********
                      o.FrameCount = o.FrameCount + 1;
                      % NOTE: store screen time in "continue_run_trial" after flip
@@ -642,7 +669,10 @@ classdef PR_ForageProceduralNoise < protocols.protocol
     %******************** THIS IS THE BIG FUNCTION *************
     function drop = state_and_screen_update(o,currentTime,x,y, varargin) 
          if ~isempty(varargin)
-             inputs=varargin;
+             inputs=varargin{1};
+             if length(varargin)>1
+                outputs=varargin{2};
+             end
          end
         
         drop = 0; % initialize
@@ -695,16 +725,46 @@ classdef PR_ForageProceduralNoise < protocols.protocol
         %*******ACTUAL DRAWING OF THE STIMULI *************
         % Draw probe stimuli
         if (o.state < 2)
-           o.hProbe{o.targOri}.beforeFrame();  % only one target now
+            Screen('SelectStereoDrawBuffer', o.winPtr, 0);
+            o.hProbe{o.targOri}.beforeFrame();  % only one target now
+            Screen('SelectStereoDrawBuffer', o.winPtr, 1);
+            o.hProbe{o.targOri}.beforeFrame();  % only one target now          
         end
         % Draw face stimulus at probe location and reward at end of display
         if (o.state == 3) 
-           o.Faces.beforeFrame(); 
+            Screen('SelectStereoDrawBuffer', o.winPtr, 0);
+            o.Faces.beforeFrame(); 
+            Screen('SelectStereoDrawBuffer', o.winPtr, 1);
+            o.Faces.beforeFrame();    
         end
         %****************************************   
         
 %         Screen('DrawingFinished', o.winPtr);
 
+
+%         %% PHOTODIODE FLASH, move to frame control(?)
+%         %DPR - 5/5/2023
+        if isfield(o.S,'photodiode')
+            dpout=find(cellfun(@(x) strcmp(x,'output_datapixx2'), o.S.outputs));
+            if rem(o.FrameCount,o.S.frameRate/o.S.photodiode.TF)==1 % first frame flash photodiode
+                Screen('FillRect',o.winPtr,o.S.photodiode.flash,o.S.photodiode.rect)
+                
+                %Should be <20 so shouldn't need to preallocate but..
+                o.Flashtime=[o.Flashtime; currentTime];
+
+                if dpout
+                    %ttl4 high
+                    outputs{dpout}.flipBitVideoSync(4,1)
+                end
+            else
+                Screen('FillRect',o.winPtr,o.S.photodiode.init,o.S.photodiode.rect)
+                if dpout
+                    %ttl4 low
+                    outputs{dpout}.flipBitVideoSync(4,0)
+                end
+            end
+       % disp(rem(o.FrameCount,o.S.frameRate/o.S.photodiode.TF))
+        end
     end
     
     function Iti = end_run_trial(o)
@@ -756,6 +816,7 @@ classdef PR_ForageProceduralNoise < protocols.protocol
         PR.noiseNum = o.noiseNum; %differs based on noise type
         %******* need to add a History for probe stimuli later
         
+        PR.Flashtime = o.Flashtime;
         %******* this is also where you could store Gabor Flash Info
         
         %%%% Record some data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -763,6 +824,7 @@ classdef PR_ForageProceduralNoise < protocols.protocol
         %%%% that would be very inefficient as the experiment progresses
         o.D.error(A.j) = o.error;   % need to decide on something later
         
+
         %%%% Plot results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Nothing for now ...
        

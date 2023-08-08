@@ -23,6 +23,7 @@ classdef eyetrack < matlab.mixin.Copyable & handle
             p = inputParser;
             p.addParameter('EyeDump',true,@islogical); % default 1, do EyeDump
             p.addParameter('UseAsEyeTracker',true,@islogical); % default 1, do EyeDump
+            
             p.parse(varargin{:});
             
             args = p.Results;

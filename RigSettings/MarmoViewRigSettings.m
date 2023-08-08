@@ -17,16 +17,26 @@ function S = MarmoViewRigSettings
 % For example, if you change the monitor set up, you only change those
 % monitor related variables here.
 % 
-RigName = 'laptop';
+RigName = 'Laptop';
 
 switch RigName
 
+    case 'Laser'
+        S.inputs = {'eyetrack_OpenIris'};%{'eyetrack_OpenIris','eyetrack_dummy'};%,'treadmill_arduino'};
+        S.outputs = {'output_datapixx2','output_sbx2p'};
+        S.feedback = {'feedback_newera'};%,feedback_newera
 
-    case 'testTDM'
-        S.inputs = {'eyetrack_dummy','treadmill_arduino'};
-        S.outputs = {};
-        S.feedback = {'feedback_newera'};%'feedback_sound',
+        S.stereoMode=4;
 
+        %Scanbox network commands
+        S.output_sbx2p.ip           = '192.168.1.1';
+        S.output_sbx2p.LocalPort    = 9090;
+        S.output_sbx2p.RemotePort   = 7000;
+
+        S.eyetrack_OpenIris.ip      = '100.1.1.1';
+        S.eyetrack_OpenIris.port    = 9003;
+        S.eyetrack_OpenIris.UseAsEyeTracker = true;
+        S.eyetracker = 'OpenIris';
 
         %S.feedback_newera = true;  
         S.feedback_newera.port = '/dev/ttyUSB0';              % use Newera juice pump
@@ -36,19 +46,79 @@ switch RigName
 
 
         S.arrington = false;      % use Arrington eye tracker
-        S.DummyEye = true;       % use mouse instead of eye tracker
+        S.DummyEye = false;       % use mouse instead of eye tracker
         S.solenoid = false;      % use solenoid juice delivery
         S.DummyScreen = false;   % don't use a Dummy Display
         S.EyeDump = true;        % store all eye position data
-        S.DataPixx = false;
+        S.output_datapixx2.KeepUnmatched =true;
+        S.DataPixx = true;
+
+        %Photodiode patch parameters
+        S.photodiode.rect =[0 1080-100 100 1080];%[1920-100 1080-100 1920 1080];%[0 0 100 100];%
+        S.photodiode.init = 0;
+        S.photodiode.flash = 255;
+        S.photodiode.TF   = 2;
+
+
+        % setup screen
+        S.monitor = '3D - Acer';         % Monitor used for display window
+        S.screenNumber = 1;                % Designates the display for task stimuli
+        S.frameRate = 60;                 % Frame rate of screen in Hz
+        S.screenRect = [0 0 1920 1080];     %  Screen dimensions in pixels
+        S.screenWidth = 59.6;                 % Width of screen (cm)
+        S.centerPix =  [960 540];           % Pixels of center of the screen
+        S.guiLocation = [800 100 890 660];
+        S.bgColour = 127; 
+        S.gamma = 1.30; %measured 6/29/2023 with extech easyview 33
+        S.screenDistance = 57;              % Distance of eye to screen (cm)
+        S.pixPerDeg = PixPerDeg(S.screenDistance,S.screenWidth,S.screenRect(3));
+        
+        
+        S.eyetrack_dummy = true;
+        S.feedback_sound = [];        
+        S.DummyScreen = false; % TODO: remove this parameter (it should be covered by screen Rect. Is it? NO!!!!! But it should be)
+        
+
+
+    
+    case 'testTDM'
+        S.inputs = {'eyetrack_OpenIris','treadmill_arduino'};%{'eyetrack_OpenIris','treadmill_arduino'};
+        S.outputs = {'output_datapixx'};
+        S.feedback = {'feedback_newera'};%'feedback_sound',
+
+        S.eyetrack_OpenIris.ip      = '100.1.1.1';
+        S.eyetrack_OpenIris.port    = 9003;
+        S.eyetrack_OpenIris.UseAsEyeTracker = true;
+        S.eyetracker = 'OpenIris';
+
+        %S.feedback_newera = true;  
+        S.feedback_newera.port = '/dev/ttyUSB0';              % use Newera juice pump
+        S.feedback_newera.pumpDiameter = 20;                % internal diameter of the juice syringe (mm)
+        S.feedback_newera.pumpRate = 20;                     % rate to deliver juice (ml/minute)
+        S.feedback_newera.pumpDefVol = 10;                % default dispensing volume (ml)
+
+
+        S.arrington = false;      % use Arrington eye tracker
+        S.DummyEye = false;       % use mouse instead of eye tracker
+        S.solenoid = false;      % use solenoid juice delivery
+        S.DummyScreen = false;   % don't use a Dummy Display
+        S.EyeDump = true;        % store all eye position data
+        S.output_datapixx.KeepUnmatched =true;
+        S.DataPixx = true;
+
+        %Photodiode patch parameters
+        S.photodiode.rect =[3640 1960 3840 2160];%[0 0 100 100];%
+        S.photodiode.init = 127;
+        S.photodiode.flash = 0;
+        S.photodiode.TF   = 1;
 
         %S.treadmill_arduino.type = 'arduino';
         S.treadmill_arduino.baud = 115200;
         S.treadmill_arduino.port = '/dev/ttyACM0';
         S.treadmill_arduino.scaleFactor = (94.25/5000); % circimference of wheel over ticks per rev
         S.treadmill_arduino.rewardMode = 'distProb';
-        S.treadmill_arduino.rewardDist = 94.25/2/5; %DPR added the/5 for Brie 6-27-2022
-        S.treadmill_arduino.rewardProb = 1;
+        S.treadmill_arduino.rewardDist = 94.25/3; %PSC changed to 94.25 06052023
+        S.treadmill_arduino.rewardProb = 1; % 1
         
         % setup screen
         S.monitor = 'ASUS-XG27UQR';         % Monitor used for display window
@@ -57,23 +127,24 @@ switch RigName
         S.screenRect = [0 0 3840 2160];     %  Screen dimensions in pixels
         S.screenWidth = 59.6;                 % Width of screen (cm)
         S.centerPix =  [1920 1080];           % Pixels of center of the screen
-        S.guiLocation = [200 100 890 660];
+        S.guiLocation = [3840+200 100 890 660];
         S.bgColour = 127; %127; %186;  % use 127 if gamma corrected
-        S.gamma = 1;
-        S.screenDistance = 50;              % Distance of eye to screen (cm)
+        S.gamma = 2.2716;
+        S.screenDistance = 38;              % Distance of eye to screen (cm)
         S.pixPerDeg = PixPerDeg(S.screenDistance,S.screenWidth,S.screenRect(3));
         
         
-        S.eyetrack_dummy = [];
+        S.eyetrack_dummy = true;
         S.feedback_sound = [];        
-
+        S.DummyScreen = false; % TODO: remove this parameter (it should be covered by screen Rect. Is it? NO!!!!! But it should be)
         
 
     case 'laptop'
         
         S.inputs = {'eyetrack_dummy'};
         S.outputs = [];
-        S.feedback = {'feedback_sound'};
+        S.feedback = {'feedback_dummy'};
+        S.DataPixx = true;
 
         S.monitor = 'Laptop';         % Monitor used for display window
         S.screenNumber = 0;                 % Designates the display for task stimuli
@@ -92,8 +163,10 @@ switch RigName
         S.screenDistance = 87;              % Distance of eye to screen (cm)
         S.pixPerDeg = PixPerDeg(S.screenDistance,S.screenWidth,S.screenRect(3));
         
-        S.eyetrack_dummy = [];
-        S.feedback_sound = [];
+        S.eyetrack_dummy = true;
+        S.feedback_dummy = [];
+        
+        
   
     case 'testIBL'
 
@@ -115,7 +188,7 @@ switch RigName
 %         S.DummyEye = true;       % use mouse instead of eye tracker
 %         S.solenoid = false;      % use solenoid juice delivery
 %         S.DummyScreen = false;   % don't use a Dummy Display
-%         S.EyeDump = true;        % store all eye position data
+         S.EyeDump = true;        % store all eye position data
 %         S.DataPixx = false;
         
         % setup screen
@@ -135,8 +208,8 @@ switch RigName
     otherwise % laptop development
 
         S.inputs = {'eyetrack_dummy', 'treadmill_dummy'};
-        S.outputs = {'output_usb2serial'};
-        S.feedback = {'feedback_dummy', 'feedback_sound'};
+        S.outputs = [];%{''};
+        S.feedback = {'feedback_dummy'};
 
         S.monitor = 'Laptop';         % Monitor used for display window
         S.screenNumber = 0;                 % Designates the display for task stimuli

@@ -49,7 +49,7 @@ classdef eyetrack_dummy < marmoview.behavior
         function closefile(~)
         end
         
-        function unpause(self,~)
+        function unpause(~,~)
         end
         
         function pause(~)

@@ -297,7 +297,8 @@ classdef steering_wheel_arduino < matlab.mixin.Copyable
 %                     p.trial.wheel.traceax=gca;
 %                 end     
         end
-        
+
+
         function close(self)
 %                 if p.trial.wheel.use
 %                     WheelPos = pds.wheel.getPos(p);
