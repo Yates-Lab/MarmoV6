@@ -214,18 +214,17 @@ switch RigName
         S.monitor = 'Laptop';         % Monitor used for display window
         S.screenNumber = 0;                 % Designates the display for task stimuli
         S.frameRate = 60;                  % Frame rate of screen in Hz
-        S.screenRect = [0 0 960 540];     % Screen dimensions in pixels
-        S.screenWidth = 15;                 % Width of screen (cm)
-        S.centerPix =  [480 270];           % Pixels of center of the screen
+        S.screenRect = [0 0 960*2 540*2];     % Screen dimensions in pixels
+
+        S.centerPix =  [480*2 270*2];           % Pixels of center of the screen
         S.guiLocation = [1000 100 890 660];
         S.bgColour = 127; % 186 if not gamma corrected
         S.DummyScreen = true; % TODO: remove this parameter (it should be covered by screen Rect. Is it?)
 
-        S.screenDistance = 14; %57;         % Distance of eye to screen (cm)
-        S.pixPerDeg = PixPerDeg(S.screenDistance,S.screenWidth,S.screenRect(3));
 
         S.gamma = 1;
-        S.screenDistance = 87;              % Distance of eye to screen (cm)
+        S.screenDistance = 57;              % Distance of eye to screen (cm)
+        S.screenWidth = 30;                 % Width of screen (cm), spoof 30deg
         S.pixPerDeg = PixPerDeg(S.screenDistance,S.screenWidth,S.screenRect(3));
         S.treadmill_dummy.type = 'none';
         S.treadmill_dummy.rewardDist = 5;

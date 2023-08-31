@@ -161,7 +161,7 @@ classdef output_datapixx2 < marmoview.output
             end
         end
 
-        function flipBitVideoSync(~,bit,value)
+        function timings=flipBitNoSync(~,bit,value)
             %pds.datapixx.flipBitVideoSync    flip a bit at the next VSync
             %
             % pds.datapixx.flipBit flips a bit on the digital out of the Datapixx
@@ -174,9 +174,14 @@ classdef output_datapixx2 < marmoview.output
 
             %Datapixx('SetDoutValues',2^16 + 2^(bit-1))
             Datapixx('SetDoutValues',value*2^(bit-1),2^(bit-1))
+            t(1)=GetSecs;
             Datapixx('RegWrRd');
+            dpTime=Datapixx('GetMarker');
+            t(2)=GetSecs;
+
+
+            timings=[mean(t) dpTime diff(t)];
 %             Datapixx('RegWrRdVideoSync'); Really slow?
-            
         end
 
         function timings=strobe(~,lowWord,highWord)

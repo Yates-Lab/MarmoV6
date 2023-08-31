@@ -1005,7 +1005,7 @@ classdef MarmoV6 < matlab.apps.AppBase
                  % TODO: OUTPUT STROBING GOES HERE, NEED TO SAVE THESE SENT
                  % TIMES SOMEWHERE
                 for i=1:length(app.outputs)
-                    app.outputs{i}.StartTimings=app.outputs{i}.starttrial(STARTCLOCK,STARTCLOCKTIME);
+                    app.outputs{i}.StartTiming=app.outputs{i}.starttrial(STARTCLOCK,STARTCLOCKTIME);
                 end
             
             
@@ -1111,7 +1111,7 @@ classdef MarmoV6 < matlab.apps.AppBase
             
                  % TODO: OUTPUT STROBING GOES HERE
                 for i=1:length(app.outputs)
-                    app.outputs{i}.EndTimings=app.outputs{i}.endtrial(ENDCLOCK,ENDCLOCKTIME);
+                    app.outputs{i}.endtrial(ENDCLOCK,ENDCLOCKTIME);
                 end
             
             

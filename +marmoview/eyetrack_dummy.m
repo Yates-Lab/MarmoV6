@@ -93,6 +93,8 @@ classdef eyetrack_dummy < marmoview.behavior
             cy = round((S.screenRect(4)-S.screenRect(2))/2) + S.screenRect(2);
             dx = 1;   % stay in pixel coordinates
             dy = -1;  % in pixel coordinates, don't scale, but do invert y
+            
+
             C.dx = dx;
             C.dy = dy;
             C.c = [cx cy];

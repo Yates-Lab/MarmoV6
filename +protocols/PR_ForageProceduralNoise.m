@@ -338,6 +338,7 @@ classdef PR_ForageProceduralNoise < protocols.protocol
           o.FrameCount = 0;
           o.PFrameCount = 0;
           o.Flashtime = [];
+          o.FlashOutTimings = [];
           %********
           if (P.trialdur < 20)
               o.TrialDur = P.trialdur;
@@ -742,10 +743,12 @@ classdef PR_ForageProceduralNoise < protocols.protocol
 %         Screen('DrawingFinished', o.winPtr);
 
 
-%         %% PHOTODIODE FLASH, move to frame control(?)
+%         %% PHOTODIODE FLASH, move to frame control/ output(?)
+%         This is gross, this is why we have independant outputs
 %         %DPR - 5/5/2023
         if isfield(o.S,'photodiode')
             dpout=find(cellfun(@(x) strcmp(x,'output_datapixx2'), o.S.outputs));
+            ardout=find(cellfun(@(x) strcmp(x,'output_arduino'), o.S.outputs));
             if rem(o.FrameCount,o.S.frameRate/o.S.photodiode.TF)==1 % first frame flash photodiode
                 Screen('FillRect',o.winPtr,o.S.photodiode.flash,o.S.photodiode.rect)
                 
@@ -753,14 +756,22 @@ classdef PR_ForageProceduralNoise < protocols.protocol
                 o.Flashtime=[o.Flashtime; currentTime];
 
                 if dpout
-                    %ttl4 high
-                    outputs{dpout}.flipBitVideoSync(4,1)
+                    %ttl-4 high
+                    timings=outputs{dpout}.flipBitNoSync(4,1);
+                elseif ardout
+                    %ttl-4 high
+                    timings=outputs{ardout}.flipBit(4,1);
                 end
-            else
+                %Should be <20 so shouldn't need to preallocate but..
+                o.FlashOutTimings=[o.FlashOutTimings; timings];
+            else % Send every frame? This seems really unnecessary, and may slow things down
                 Screen('FillRect',o.winPtr,o.S.photodiode.init,o.S.photodiode.rect)
                 if dpout
                     %ttl4 low
-                    outputs{dpout}.flipBitVideoSync(4,0)
+                    [~]=outputs{dpout}.flipBitNoSync(4,0);
+                elseif ardout
+                    %ttl-4 low
+                    [~]=outputs{ardout}.flipBit(4,0);
                 end
             end
        % disp(rem(o.FrameCount,o.S.frameRate/o.S.photodiode.TF))
@@ -817,6 +828,7 @@ classdef PR_ForageProceduralNoise < protocols.protocol
         %******* need to add a History for probe stimuli later
         
         PR.Flashtime = o.Flashtime;
+        PR.FlashOutTimings = o.FlashOutTimings;
         %******* this is also where you could store Gabor Flash Info
         
         %%%% Record some data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -281,7 +281,7 @@ classdef FrameControl < matlab.mixin.Copyable & handle
         o.FData(eyeI,8) = FlipTimestamp;
         o.FData(eyeI,9) = Missed;
 
-        disp(o.FData(eyeI,6)-o.FData(eyeI-1,6))
+     %   disp(o.FData(eyeI,6)-o.FData(eyeI-1,6))
        % Reset the screen
 %        Screen('FillRect',o.winPtr,o.Bkgd);
     
