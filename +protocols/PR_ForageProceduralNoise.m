@@ -44,6 +44,7 @@ classdef PR_ForageProceduralNoise < protocols.protocol
     FixMax = 20        % maximum fixations in any trial
     %**** Photodiode flash timing
     Flashtime = [];
+    FlashOutTimings = [];
     %**********************************
     D struct = struct()        % store PR data for end plot stats, will store dotmotion array
   end

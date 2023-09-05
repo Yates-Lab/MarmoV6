@@ -139,11 +139,12 @@ switch RigName
         S.DummyScreen = false; % TODO: remove this parameter (it should be covered by screen Rect. Is it? NO!!!!! But it should be)
         
 
-    case 'Laptop'
+    case 'laptop'
+        
         S.inputs = {'eyetrack_dummy'};
-        S.outputs = {'output_arduino'};
+        S.outputs = {'output_datapixx'};
         S.feedback = {'feedback_dummy'};
-        S.DataPixx = false;
+        S.DataPixx = true;
 
         S.monitor = 'Laptop';         % Monitor used for display window
         S.screenNumber = 0;                 % Designates the display for task stimuli
@@ -153,7 +154,6 @@ switch RigName
         S.centerPix =  [480 270];           % Pixels of center of the screen
         S.guiLocation = [1000 100 890 660];
         S.bgColour = 127; % 186 if not gamma corrected
-        S.output_arduino.port = 'COM3';
 
         S.screenDistance = 14; %57;         % Distance of eye to screen (cm)
         S.pixPerDeg = PixPerDeg(S.screenDistance,S.screenWidth,S.screenRect(3));
@@ -166,11 +166,6 @@ switch RigName
         S.eyetrack_dummy = true;
         S.feedback_dummy = [];
         
-        %Photodiode patch parameters
-        S.photodiode.rect =[0 0 100 100];%[1920-100 1080-100 1920 1080];%[0 0 100 100];%
-        S.photodiode.init = 0;
-        S.photodiode.flash = 255;
-        S.photodiode.TF   = 2;
         
   
     case 'testIBL'

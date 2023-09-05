@@ -1,5 +1,6 @@
-% wrapper class for treadmill
-% 4/28/2021 - Jake Yates
+% Code for sending arduino timing signals high and low, would be nice to
+% also keep track of state of bits and read from the arduino
+
 classdef output_arduino < matlab.mixin.Copyable
     %******* basically is just a wrapper for a bunch of calls to the
     % arduino toolbox. based on code snippet from huklabBasics
@@ -17,6 +18,8 @@ classdef output_arduino < matlab.mixin.Copyable
         rewardProb
         UseAsEyeTracker logical
 
+        StartTimings %Holds the output hardware times for trial starts
+        EndTimings %Holds the output hardware times for trial endings
 
         offset
         wheelPos
@@ -73,15 +76,13 @@ classdef output_arduino < matlab.mixin.Copyable
             self.frameCounter = self.frameCounter + 1;
         end 
 
-        function startfile(~)
+        function startfile(self,~)
         end    
         
-        function closefile(~)
-        end
-
+        function closefile(self,~)
+        end        
         
-        
-        function init(~,~)
+        function init(self,~)
         end
 
         function readinput(self,~)
@@ -94,22 +95,21 @@ classdef output_arduino < matlab.mixin.Copyable
             value=1;
             datastring = sprintf(['Value:' num2str(value,'%02.f') ', \t Bitmask:' bitmask ',']);
             t(1)=GetSecs;
-            [nwritten, when, errmsg, prewritetime, postwritetime, lastchecktime] = IOPort('Write', self.arduinoUno, datastring, blocking=1);
+            [nwritten, when, errmsg, prewritetime, postwritetime, lastchecktime] = IOPort('Write', self.arduinoUno, datastring, 1);
             t(2)=GetSecs;   
     
 
-            timings=[mean(t) when diff(t)];
-            
+            timings=[mean(t) when diff(t)];   
         end
 
-        function timings=endtrial(self,STARTCLOCK,STARTCLOCKTIME)
+        function timings=endtrial(self,ENDCLOCK,ENDCLOCKTIME)
            % Send first bit low
             
             bitmask='0001';
             value=0;
             datastring = sprintf(['Value:' num2str(value,'%02.f') ', \t Bitmask:' bitmask ',']);
             t(1)=GetSecs;
-            [nwritten, when, errmsg, prewritetime, postwritetime, lastchecktime] = IOPort('Write', self.arduinoUno, datastring, blocking=1);
+            [nwritten, when, errmsg, prewritetime, postwritetime, lastchecktime] = IOPort('Write', self.arduinoUno, datastring, 1);
             t(2)=GetSecs;   
     
 
@@ -129,7 +129,7 @@ classdef output_arduino < matlab.mixin.Copyable
             bitmask=dec2bin(2^(bit-1));
             datastring = sprintf(['Value:' num2str(value,'%02.f') ', \t Bitmask:' bitmask ',']);
             t(1)=GetSecs;
-            [nwritten, when, errmsg, prewritetime, postwritetime, lastchecktime] = IOPort('Write', self.arduinoUno, datastring, blocking=1);
+            [nwritten, when, errmsg, prewritetime, postwritetime, lastchecktime] = IOPort('Write', self.arduinoUno, datastring, 1);
             t(2)=GetSecs;   
     
 
