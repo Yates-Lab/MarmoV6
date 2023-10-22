@@ -16,6 +16,7 @@ classdef feedback_solenoid < handle % marmoview.liquid
        FixationPort = '1'
        FixationLostPort = '2'
        IncorrectPort = '3'
+       units = 'UL'
   end % properties
 
    properties (Dependent, SetAccess = public, GetAccess = public)

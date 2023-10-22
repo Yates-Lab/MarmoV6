@@ -141,7 +141,14 @@ classdef PR_BackImage < handle
         % STATE SPECIFIC DRAWS
         switch o.state
            case 0
-            Screen('DrawTextures',o.winPtr,o.ImoScreen,o.ImoRect,o.ScreenRect)  
+            if isfield(o.S,'stereoMode') && o.S.stereoMode>0
+                Screen('SelectStereoDrawBuffer', o.winPtr, 0);
+                Screen('DrawTextures',o.winPtr,o.ImoScreen,o.ImoRect,o.ScreenRect)  % draw
+                Screen('SelectStereoDrawBuffer', o.winPtr, 1);
+                Screen('DrawTextures',o.winPtr,o.ImoScreen,o.ImoRect,o.ScreenRect)  % draw
+            else
+                Screen('DrawTextures',o.winPtr,o.ImoScreen,o.ImoRect,o.ScreenRect) 
+            end
         end 
         %**************************************************************
     end

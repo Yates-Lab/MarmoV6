@@ -13,6 +13,8 @@ classdef eyetrack_dummy < marmoview.behavior
   properties (SetAccess = public, GetAccess = public)
     EyeDump logical
     UseAsEyeTracker logical
+    x
+    y
   end
     
     methods
@@ -25,14 +27,19 @@ classdef eyetrack_dummy < marmoview.behavior
             p.parse(varargin{:});
             
             args = p.Results;
-            o = o@marmoview.behavior(varargin{:});
+            %o = o@marmoview.behavior(varargin{:});
             o.EyeDump = args.EyeDump;
             o.UseAsEyeTracker = args.UseAsEyeTracker;
+
+
             
             % configure the tracker and initialize...
         end
         
         function init(~,~)
+        end
+        
+        function readinput(self,~)
         end
 
         function startfile(~,~)
@@ -42,27 +49,35 @@ classdef eyetrack_dummy < marmoview.behavior
         function closefile(~)
         end
         
-        function unpause(~)
+        function unpause(~,~)
         end
         
         function pause(~)
         end
         
-        function starttrial(~,varargin) %should be just two inputs but (~,~) throws an error?
+        function starttrial(~,~,varargin) %should be just two inputs but (~,~) throws an error?
         end
 
         function drop = afterFrame(~,varargin) %(~,currenttime,drop)
             drop=varargin{2};
         end
         
-        function endtrial(~,varargin)
+        function endtrial(~,~,varargin)
         end
 
         function close(~)
         end
         
-        function [x,y] = getgaze(~)
+        function [x,y] = getgaze(self,~)
             [x,y] = GetMouse;
+            self.x = x;
+            self.y = y;     
+            %other specs depend on screen and position
+        end
+        
+        function [x,y] = getinput(self,~)
+            x = self.x;
+            y = self.y;
             %other specs depend on screen and position
         end
         
@@ -73,6 +88,20 @@ classdef eyetrack_dummy < marmoview.behavior
         function sendcommand(~,~,~)
         end
         
+        function C=calibinit(~,S)
+            cx = round((S.screenRect(3)-S.screenRect(1))/2) + S.screenRect(1);
+            cy = round((S.screenRect(4)-S.screenRect(2))/2) + S.screenRect(2);
+            dx = 1;   % stay in pixel coordinates
+            dy = -1;  % in pixel coordinates, don't scale, but do invert y
+            
+
+            C.dx = dx;
+            C.dy = dy;
+            C.c = [cx cy];
+        end
+
+
+
     end % methods
     
     methods (Access = private)

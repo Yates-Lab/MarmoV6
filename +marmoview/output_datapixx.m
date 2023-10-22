@@ -1,8 +1,8 @@
-classdef output_datapixx < output
+classdef output_datapixx < marmoview.output
     % OUPUT_DATAPIXX is a class sending digital strobes with a datapixx
     % analog IO not implemented
 
-    properties
+    properties (SetAccess = private, GetAccess = public)
         
     end
 
@@ -44,23 +44,25 @@ classdef output_datapixx < output
             Datapixx('SetDoutValues',0);
             Datapixx('RegWrRd');
         end
+    end
 
-        function starttrial(STARTCLOCK,STARTCLOCKTIME)
+    methods (Access = public)
+        function starttrial(obj,STARTCLOCK,STARTCLOCKTIME,~)
             % replace the datapixx strobe with a generic call to
-            datapixx.strobe(63,0);  % send all bits on to mark trial start 
+            obj.strobe(63,0);  % send all bits on to mark trial start 
 
             for k = 1:6
-                datapixx.strobe(STARTCLOCK(k),0);
+                obj.strobe(STARTCLOCK(k),0);
             end
         end
 
-        function endtrial(ENDCLOCK,ENDCLOCKTIME)
+        function endtrial(obj,ENDCLOCK,ENDCLOCKTIME,~)
             %******* the data pix strobe will take about 0.5 ms **********
-            datapixx.strobe(62,0);% send all bits on but first (254) to mark trial end 
+            obj.strobe(62,0);% send all bits on but first (254) to mark trial end 
 
             %****** send the rest of the sixlet via DataPixx
            for k = 1:6
-               datapixx.strobe(ENDCLOCK(k),0);
+               obj.strobe(ENDCLOCK(k),0);
            end
         end
 
@@ -107,7 +109,7 @@ classdef output_datapixx < output
             Datapixx RegWrRd;
         end
 
-        function timings=flipBit(bit,trial)
+        function timings=flipBit(obj,bit,trial)
             %pds.datapixx.flipBit    flip a bit on the digital out of the Datapixx
             %
             % pds.datapixx.flipBit flips a bit on the digital out of the Datapixx
@@ -120,13 +122,13 @@ classdef output_datapixx < output
             % (c) jk 2015
 
             if nargout==0
-                datapixx.strobe(trial,2^(bit-1));
+                [~] = obj.strobe(trial,2^(bit-1));
             else
-                timings=datapixx.strobe(trial,2^(bit-1));
+                timings=obj.strobe(trial,2^(bit-1));
             end
         end
 
-        function flipBitVideoSync(bit)
+        function flipBitVideoSync(~,bit)
             %pds.datapixx.flipBitVideoSync    flip a bit at the next VSync
             %
             % pds.datapixx.flipBit flips a bit on the digital out of the Datapixx
@@ -141,8 +143,8 @@ classdef output_datapixx < output
             Datapixx('RegWrRdVideoSync');
         end
 
-        function timings=strobe(lowWord,highWord)
-            %pds.datapixx.strobe    strobes a 16 Bit word from the datapixx
+        function timings=strobe(~,lowWord,highWord)
+            % pds.datapixx.strobe    strobes a 16 Bit word from the datapixx
             %
             % pds.datapixx.strobe(lowWord,highWord)
             %
@@ -163,8 +165,9 @@ classdef output_datapixx < output
             if nargin < 2
                 highWord=0;
             end
+            
             word=mod(lowWord, 2^6) + mod(highWord,2^6)*2^6;
-
+            
             if nargout==0
                 %first we set the bits without the strobe, to ensure they are all
                 %settled when we flip the strobe bit (plexon need all bits to be set
@@ -231,6 +234,8 @@ classdef output_datapixx < output
 
         end
 
+        function closefile(~)
+        end
 
 
     end

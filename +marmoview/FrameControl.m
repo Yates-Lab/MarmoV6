@@ -274,12 +274,14 @@ classdef FrameControl < matlab.mixin.Copyable & handle
             ifi = 1./o.frameRate;
             [vblTime,stimOnset, FlipTimestamp, Missed] = Screen('Flip',o.winPtr,o.FData(eyeI-1,6)+ifi/2,o.dontclear);
        end
-
+        
 %        o.FData(eyeI,5) = state; 
         o.FData(eyeI,6) = vblTime;
         o.FData(eyeI,7) = stimOnset;
         o.FData(eyeI,8) = FlipTimestamp;
         o.FData(eyeI,9) = Missed;
+
+     %   disp(o.FData(eyeI,6)-o.FData(eyeI-1,6))
        % Reset the screen
 %        Screen('FillRect',o.winPtr,o.Bkgd);
     
@@ -343,7 +345,8 @@ classdef FrameControl < matlab.mixin.Copyable & handle
               ind = ismember(o.FData(:,5),o.FP(k).states);
               x = (o.FData(ind,2)-c_(1)) / (dx_*ppd);
               y = (o.FData(ind,3)-c_(2)) / (dy_*ppd);
-              plot(h,x,y,[o.FP(k).col,'.']);
+              plot(h,x,y,['b','.']);
+              %plot(h,x,y,[o.FP(k).col,'.']);
             end
           end
         end

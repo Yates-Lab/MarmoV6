@@ -27,7 +27,7 @@ classdef grating_procedural < stimuli.stimulus
     range double = 127;
     gauss logical = true;  %gaussian aperture
     transparent double = 0.5;  % from 0 to 1, how transparent
-    pixperdeg double = 0;  % set non-zero to use for CPD computation
+    pixPerDeg double = 0;  % set non-zero to use for CPD computation
     screenRect = [];   % if radius Inf, then fill whole area
     texRect
   end
@@ -65,7 +65,7 @@ classdef grating_procedural < stimuli.stimulus
       p.addParameter('gauss',o.gauss,@islogical);
       p.addParameter('bkgd',o.bkgd,@isfloat);
       p.addParameter('range',o.range,@isfloat);
-      p.addParameter('pixperdeg',o.pixperdeg,@isdouble);
+      p.addParameter('pixPerDeg',o.pixPerDeg,@isdouble);
                   
       try
         p.parse(args{:});
@@ -86,7 +86,7 @@ classdef grating_procedural < stimuli.stimulus
       o.gauss = args.gauss;
       o.bkgd = args.bkgd;
       o.range = args.range;
-      o.pixperdeg = args.pixperdeg;
+      o.pixPerDeg = args.pixPerDeg;
  
     end
         
@@ -163,7 +163,7 @@ classdef grating_procedural < stimuli.stimulus
              dPix = 2*rPix+1;
              sigma = dPix / 8; % apply sigma
              
-             freq = o.cpd/o.pixperdeg;
+             freq = o.cpd/o.pixPerDeg;
              % Procedural gabor textures blend using shaders, so we want
              % them to sum, instead of doing complicated alpha-blending
              % switch to GL_ONE, GL_ONE and store the old blend function
@@ -174,7 +174,7 @@ classdef grating_procedural < stimuli.stimulus
              
          else 
              [sourceFactorOld, destinationFactorOld] = Screen('BlendFunction', o.winPtr, GL_ONE, GL_ONE);
-             freq = o.cpd/o.pixperdeg;
+             freq = o.cpd/o.pixPerDeg;
              Screen('DrawTexture', o.winPtr, o.tex, [], rect, 90-o.orientation, [], [], [], [], [], [o.phase, freq, o.transparent, 0]);
              Screen('BlendFunction', o.winPtr, sourceFactorOld, destinationFactorOld);
          end
@@ -222,7 +222,7 @@ classdef grating_procedural < stimuli.stimulus
             e1 = exp(-.5*(X.^2 + Y.^2)/sigma^2);
         end
         
-        maxRadians = twopi * o.cpd / o.pixperdeg;
+        maxRadians = twopi * o.cpd / o.pixPerDeg;
         
         % Create the sinusoid
         pha = (o.phase - 0) * deg2rad;

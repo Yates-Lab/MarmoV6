@@ -14,7 +14,7 @@ S = MarmoViewRigSettings;
 S.MarmoViewVersion = '5';
 
 % PARAMETER DESCRIBING TRIAL NUMBER TO STOP TASK
-S.finish = 100;
+S.finish = 150;
 
 % PROTOCOL PREFIX
 S.protocol = 'ForageProceduralNoise';

@@ -12,9 +12,15 @@ classdef treadmill_arduino < matlab.mixin.Copyable
         scaleFactor double
         rewardMode char
         locationSpace double
-        maxFrames double
+        maxFrames double 
         rewardDist
         rewardProb
+        UseAsEyeTracker logical
+
+
+        offset
+        wheelPos
+        wheelPosRaw
     end
     
     properties (SetAccess = private, GetAccess = public)
@@ -34,8 +40,9 @@ classdef treadmill_arduino < matlab.mixin.Copyable
             ip.addParameter('scaleFactor', [])
             ip.addParameter('rewardMode', 'dist')
             ip.addParameter('maxFrames', 5e3)
-            ip.addParameter('rewardDist', 94.25)
+            ip.addParameter('rewardDist', 94.25./15)
             ip.addParameter('rewardProb', 1)
+            ip.addParameter('UseAsEyeTracker',false,@islogical); % default false
             ip.parse(varargin{:});
             
             args = ip.Results;
@@ -44,7 +51,7 @@ classdef treadmill_arduino < matlab.mixin.Copyable
                 self.(fields{i}) = args.(fields{i});
             end
 
-            config=sprintf('BaudRate=%d ReceiveTimeout=.1', self.baud); %DTR=1 RTS=1 
+            config=sprintf('BaudRate=%d ReceiveTimeout=0.1', self.baud); %DTR=1 RTS=1 
         
             [self.arduinoUno, ~] = IOPort('OpenSerialPort', self.port, config);
             self.timeOpened = GetSecs();
@@ -62,24 +69,12 @@ classdef treadmill_arduino < matlab.mixin.Copyable
     methods (Access = public)
         
         function out = afterFrame(self, currentTime, rewardState)
-            
+            %READ INPUT NEEDS TO BE BEFORE FRAME,reward comes after
             self.locationSpace(self.frameCounter,1) = currentTime;
             self.locationSpace(self.frameCounter,5) = rewardState;
-            % collect position data
-            [count, timestamp] = self.readCount();
-            
-            self.locationSpace(self.frameCounter, 2) = timestamp;
-            if ~isnan(count)
-                self.locationSpace(self.frameCounter,3:4) = count * [1 self.scaleFactor];
-            elseif isnan(count) && self.frameCounter == 1 % bad count on frame 1
-                self.locationSpace(self.frameCounter,3:4) = 0;
-            else % bad count not on frame 1, use previous sample
-                self.locationSpace(self.frameCounter,3:4) = self.locationSpace(self.frameCounter-1,3:4);
-            end
-            
+
             % reward
             switch self.rewardMode
-                
                 case 'dist'
                     if self.locationSpace(self.frameCounter, 4) > self.nextReward   
 %                         tmp = double(rand < self.rewardProb);
@@ -96,18 +91,37 @@ classdef treadmill_arduino < matlab.mixin.Copyable
                     end
             end
             
-            out = self.locationSpace(self.frameCounter,5);
+            out = rewardState + self.locationSpace(self.frameCounter,5);
+%             figure(2)
+%             hold off; plot(self.locationSpace(:,4));
+        
             self.frameCounter = self.frameCounter + 1;
         end 
+
+        function startfile(~)
+        end    
+        
+        function closefile(~)
+        end
+
         
         function [count, timestamp] = readCount(self)
             % read from buffer, take last sample
             msg = IOPort('Read', self.arduinoUno);
             a = regexp(char(msg), 'time:(?<time>\d+),count:(?<count>\d+),', 'names');
+            %b = regexp(char(msg), 'time:(?<time>\d+),count-:(?<count>\d+),', 'names');
+            
             if isempty(a)
 %                 disp('message was empty')
-                count = nan;
-                timestamp = nan;
+                % Could be negative! Sureley there is a better way
+                a = regexp(char(msg), 'time:(?<time>\d+),count:-(?<count>\d+),', 'names');
+                if isempty(a)                
+                    count = nan;
+                    timestamp = nan;
+                else
+                    count = -str2double(a(end).count);
+                    timestamp = str2double(a(end).time);
+                end
             else
 %                 timestamp = arrayfun(@(x) str2double(x.time), a(end));
 %                 count = arrayfun(@(x) str2double(x.count), a(end));
@@ -116,13 +130,80 @@ classdef treadmill_arduino < matlab.mixin.Copyable
             end
         end
         
-        function starttrial(STARTCLOCK,STARTCLOCKTIME)
-            reset(self)
+        function init(~,~)
         end
 
+        function readinput(self,~)
+            %READ INPUT NEEDS TO BE BEFORE FRAME,reward comes after            
+            % collect position data
+            [count, timestamp] = self.readCount();
+
+            %Check for overflow
+            posRaw=count-self.offset;
+            
+            %Previous value
+            if self.frameCounter ~= 1 
+                wheelPos0=self.locationSpace(self.frameCounter-1,3);
+            else
+                wheelPos0=0;
+            end
+
+            if ~isempty(posRaw)
+                %Check for over/underflow
+                if (posRaw-wheelPos0)>(2^31-2500)
+                    posRaw=posRaw-(2^31-1);
+                elseif (posRaw-wheelPos0)<-(2^31-2500)
+                    posRaw=posRaw+(2^31-1);
+                end
+            end
+            count=posRaw;
+
+            
+            self.locationSpace(self.frameCounter, 2) = timestamp;
+            if ~isnan(count)
+                self.locationSpace(self.frameCounter,3:4) = count * [1 self.scaleFactor];
+            elseif self.frameCounter == 1 % bad count on frame 1, was isnan(count) && self.frameCounter == 1 , but first frame usually unreliable
+                self.locationSpace(self.frameCounter,3:4) = 0;
+            else % bad count not on frame 1, use previous sample
+                self.locationSpace(self.frameCounter,3:4) = self.locationSpace(self.frameCounter-1,3:4);
+            end
+
+        end
+
+        function starttrial(self,STARTCLOCK,STARTCLOCKTIME)     
+            reset(self)
+        end
+        
+        function unpause(self,~)
+        end
+        
+        function pause(~)
+        end
+        
+        function endtrial(~,~,varargin)
+        end
 
         function reset(self)
-            IOPort('Write', self.arduinoUno, 'reset');
+%             %% Zero out initial value
+%             [offset, ~] = readinput(self);%pds.wheel.getPos(p);
+            [offset, ~] = self.readCount();
+
+            %% retry if null
+            while isempty(offset)||isnan(offset)
+                %POTENTIALLY INFINITE WHILE LOOP!
+                %This seems fraught, but should work most of the time
+                %and you should want to break if it doesn't
+                 [offset, ~] = self.readCount();
+            end
+
+            
+            %Take previous value as offset
+            self.offset=offset;%self.locationSpace(self.frameCounter-1,3); 
+            self.wheelPos=0; %initialise wheel position
+
+
+            %IOPort('Write', self.arduinoUno, 'reset');
+            self.nextReward = self.rewardDist;
             self.frameCounter = 1;
             self.locationSpace(:) = nan;
             IOPort('Flush', self.arduinoUno);
