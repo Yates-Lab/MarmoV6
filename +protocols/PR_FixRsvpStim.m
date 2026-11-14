@@ -129,7 +129,8 @@ classdef PR_FixRsvpStim < handle
           end
 
           % Select a face from image set to show at center
-          o.Faces.imagenum = randi(length(o.Faces.tex));  % pick any at random
+          o.Faces.imagenum = o.ImSequence(1);
+          %randi(length(o.Faces.tex));  % pick any at random
           if rand < P.faceTrialFraction
               o.faceTrial = true;
           else

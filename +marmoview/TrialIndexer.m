@@ -7,7 +7,8 @@ classdef TrialIndexer < handle
     trialN;
     trialPerm;
     trialComp;  %track trials completed
-    trialInd;  %will step to 1 if no error 
+    trialInd;  %will step to 1 if no error
+    firstTrial logical = true; % no preceding outcome on the first request
   end % properties
    
   % dependent properties, calculated on the fly...
@@ -15,6 +16,7 @@ classdef TrialIndexer < handle
     corstates double             % correct states to continue trial  
     repstates double             % error states for which to repeat trial
     RepeatUntilCorrect double    % if one, repeat till all trials correct
+    PreserveTrialOrder logical = false % use a pre-randomized, constrained plan
   end
   
   methods
@@ -25,6 +27,9 @@ classdef TrialIndexer < handle
           o.trialN = 1;   %it will always return trial 1 if so
       else
           o.trialN = size(TrialsList,1);
+      end
+      if isfield(P,'PreserveTrialOrder')
+          o.PreserveTrialOrder = logical(P.PreserveTrialOrder);
       end
       o.resetTrialBuffer();
       if (isfield(P,'RepeatUntilCorrect'))
@@ -43,7 +48,13 @@ classdef TrialIndexer < handle
     end
 
     function trialInd = getNextTrial(o, error)
-         if o.RepeatUntilCorrect         
+         if o.firstTrial
+             o.firstTrial = false;
+             trialInd = o.trialPerm(o.trialInd);
+             return;
+         end
+
+         if o.RepeatUntilCorrect
               if ismember(error,o.corstates) % correct trials marked complete
                  o.trialComp(o.trialInd) = 1;
               end
@@ -67,7 +78,7 @@ classdef TrialIndexer < handle
               %******* only repeat if an abort or fix break
               if  ~ismember(error,o.repstates)  % not abort or break fix
                  o.trialInd = o.trialInd+1;  % always step forward
-                 if o.trialInd >= o.trialN
+                 if o.trialInd > o.trialN
                    o.resetTrialBuffer();
                  end   
               end
@@ -77,7 +88,11 @@ classdef TrialIndexer < handle
     end
     
     function resetTrialBuffer(o)
-         o.trialPerm = randperm(o.trialN);
+         if o.PreserveTrialOrder
+             o.trialPerm = 1:o.trialN;
+         else
+             o.trialPerm = randperm(o.trialN);
+         end
          o.trialComp = zeros(1,o.trialN);  %track trials completed
          o.trialInd = 1;  %will step to 1 if no error
     end

@@ -53,6 +53,8 @@ classdef FrameControl < matlab.mixin.Copyable & handle
      centerPix = [0,0];
      pixPerDeg = 30; 
      frameRate = 60; 
+     persistence logical = false; % Keep last screen image between trials
+     scr_gamma double = 1; % For redrawing
   end
 
   methods
@@ -65,8 +67,8 @@ classdef FrameControl < matlab.mixin.Copyable & handle
       %*************
       o.TimeSensitive = [];  %no states time sensitive by default
       %*************
-      o.FMAX = 5000;  %capped at a Max of 5000 screen flips
-      o.FIELDS = 9;
+      o.FMAX = 5000;  % default buffer, adjusted per rig/protocol in initialize
+      o.FIELDS = 10;
       o.FData = nan(o.FMAX,o.FIELDS);   %per trial data storage
       o.FCount = 0;
       o.c  = [0,0];
@@ -92,7 +94,6 @@ classdef FrameControl < matlab.mixin.Copyable & handle
         %*********
         o.PInit = P;    % store parameter fields struct, never allow new fields
         %*************
-        o.FData(:) = NaN; 
         o.FCount = 0;
         %***********
         o.c = C.c;
@@ -100,7 +101,29 @@ classdef FrameControl < matlab.mixin.Copyable & handle
         o.dy = C.dy;
         %**************
         o.frameRate = S.frameRate;
-        o.FMAX = ceil(60*o.frameRate); % max trial is 20 seconds, regardless of framerate
+        if isfield(S, 'gamma') && ~isempty(S.gamma)
+            o.scr_gamma = S.gamma;
+        else
+            o.scr_gamma = 1;
+        end
+        if isfield(S, 'persistence') && ~isempty(S.persistence)
+            o.persistence = logical(S.persistence);
+        else
+            o.persistence = false;
+        end
+        if isfield(S, 'maxTrialFrames') && ~isempty(S.maxTrialFrames)
+            o.FMAX = double(S.maxTrialFrames);
+        elseif isfield(P, 'maxTrialFrames') && ~isempty(P.maxTrialFrames)
+            o.FMAX = double(P.maxTrialFrames);
+        else
+            maxTrialSeconds = 60;
+            if isfield(P, 'trialdur') && isnumeric(P.trialdur) && isscalar(P.trialdur)
+                maxTrialSeconds = max(maxTrialSeconds, double(P.trialdur) + 5);
+            end
+            o.FMAX = ceil(maxTrialSeconds * o.frameRate);
+        end
+        o.FMAX = max(1, ceil(o.FMAX));
+        o.FData = nan(o.FMAX,o.FIELDS);
         o.centerPix = S.centerPix;
         o.pixPerDeg = S.pixPerDeg;
         
@@ -124,7 +147,11 @@ classdef FrameControl < matlab.mixin.Copyable & handle
 
         p.addParameter('showEye',0,@isfloat);
         p.addParameter('eyeIntensity',20,@isfloat); % default 
-        p.addParameter('Bkgd',127,@isfloat);
+        defaultBkgd = 127;
+        if isfield(S,'bgColour') && ~isempty(S.bgColour)
+            defaultBkgd = S.bgColour;
+        end
+        p.addParameter('Bkgd',defaultBkgd,@isfloat);
         p.addParameter('eyeRadius',2.0,@isfloat);
         
         p.parse(varargin{:});
@@ -138,9 +165,13 @@ classdef FrameControl < matlab.mixin.Copyable & handle
         %******* if parameters are in the Pinit, use them 
         o.update_args_from_Pstruct(o.PInit);
         
-        % Color for gaze indicator color, % purple, replace later 
-        o.eyeColor = uint8(repmat(o.Bkgd,[1 3])) + ...
-                     uint8(o.eyeIntensity * [1,-1,1]);
+        % Color for gaze indicator color, % purple, replace later
+        backgroundRGB = o.Bkgd(:)';
+        if isscalar(backgroundRGB)
+            backgroundRGB = repmat(backgroundRGB,[1 3]);
+        end
+        o.eyeColor = uint8(min(255,max(0, ...
+            backgroundRGB + o.eyeIntensity*[1,-1,1])));
      end  
     
      function update_args_from_Pstruct(o,P)
@@ -150,8 +181,12 @@ classdef FrameControl < matlab.mixin.Copyable & handle
         end
         if (isfield(P,'eyeIntensity'))
           o.eyeIntensity = P.('eyeIntensity');
-          o.eyeColor = uint8(repmat(o.Bkgd,[1 3])) + ...
-                     uint8(o.eyeIntensity * [1,-1,1]);
+          backgroundRGB = o.Bkgd(:)';
+          if isscalar(backgroundRGB)
+              backgroundRGB = repmat(backgroundRGB,[1 3]);
+          end
+          o.eyeColor = uint8(min(255,max(0, ...
+              backgroundRGB + o.eyeIntensity*[1,-1,1])));
         end
         if (isfield(P,'Bkgd'))
           o.Bkgd = P.('Bkgd');
@@ -190,8 +225,9 @@ classdef FrameControl < matlab.mixin.Copyable & handle
           %*************
           
           % Setup first frame
-          Screen('FillRect',o.winPtr,o.Bkgd);
+          o.draw_intertrial_backbuffer();
           % when flipping, store time in eyeData
+
           [vbl, stimOnset, FlipTimestamp, Missed] = Screen('Flip',o.winPtr,0);
           %***** Get initial into *************
           o.FData(1:o.FCount,2) = eyepos(1);
@@ -202,6 +238,9 @@ classdef FrameControl < matlab.mixin.Copyable & handle
           o.FData(1:o.FCount,7) = stimOnset;
           o.FData(1:o.FCount,8) = FlipTimestamp;
           o.FData(1:o.FCount,9) = Missed;
+
+          % DPR- adding because having eyepos/screenfliptime and stimulus state (that was shown) is useful  
+          o.FData(1:o.FCount,10) = 0; % Shown state
           %******* Store the Clock Sixlet ***********
           CL = fix(clock);
           CL(1) = CL(1) - 2000;
@@ -274,12 +313,23 @@ classdef FrameControl < matlab.mixin.Copyable & handle
             ifi = 1./o.frameRate;
             [vblTime,stimOnset, FlipTimestamp, Missed] = Screen('Flip',o.winPtr,o.FData(eyeI-1,6)+ifi/2,o.dontclear);
        end
+        
+       % o.FData(eyeI,5) = state; % We want the state that was actually shown
+       % This was commented out in marmov5, why? It's set in grabeye_run_trial,
+       % but shouldn't new state be updated on flip to match state on flip ???
+       
+       % FData(:,1) has the time at begining 'currenttimes' used for
+       % stimuli generation, maybe we should leave FData(:,5) to hold state
+       % before updates and make a new column for new/flipped state
 
-%        o.FData(eyeI,5) = state; 
         o.FData(eyeI,6) = vblTime;
         o.FData(eyeI,7) = stimOnset;
         o.FData(eyeI,8) = FlipTimestamp;
         o.FData(eyeI,9) = Missed;
+        o.FData(eyeI,10) = state; % State after screen update
+        % For revcorr -6 gives time, 10 gives state
+
+     %   disp(o.FData(eyeI,6)-o.FData(eyeI-1,6))
        % Reset the screen
 %        Screen('FillRect',o.winPtr,o.Bkgd);
     
@@ -302,13 +352,29 @@ classdef FrameControl < matlab.mixin.Copyable & handle
         % Reset the screen and leave blank for ITI
         o.FCount = o.FCount + 1;
         eyeI = o.FCount;
-        Screen('FillRect',o.winPtr,o.Bkgd);
+        o.draw_intertrial_backbuffer();
         FEnd = Screen('Flip',o.winPtr,GetSecs);
         o.FData(eyeI,6) = FEnd;
         %******* Store the Clock Sixlet ***********
         CL = fix(clock);
         CL(1) = CL(1) - 2000;
         %******************************************
+    end
+
+    function draw_intertrial_backbuffer(o)
+        if ~o.persistence
+            Screen('FillRect',o.winPtr,o.Bkgd);
+            return
+        end
+
+        try
+            img = Screen('GetImage',o.winPtr);
+            scr_gamma = o.scr_gamma;
+            img = 255*((255.^-scr_gamma)*double(img(:,:,1)).^scr_gamma);
+            Screen('PutImage', o.winPtr, img);
+        catch
+            Screen('FillRect',o.winPtr,o.Bkgd);
+        end
     end
 
     function plot_eye_trace_and_flips(o,handles)
@@ -343,7 +409,8 @@ classdef FrameControl < matlab.mixin.Copyable & handle
               ind = ismember(o.FData(:,5),o.FP(k).states);
               x = (o.FData(ind,2)-c_(1)) / (dx_*ppd);
               y = (o.FData(ind,3)-c_(2)) / (dy_*ppd);
-              plot(h,x,y,[o.FP(k).col,'.']);
+              plot(h,x,y,['b','.']);
+              %plot(h,x,y,[o.FP(k).col,'.']);
             end
           end
         end

@@ -16,7 +16,7 @@ S.finish = 80;
 % PROTOCOL PREFIXS
 S.protocol = 'BackImage';
 S.protocol_class = ['protocols.PR_',S.protocol];
-S.ImageDirectory = 'Backgrounds';  % default is Backgrounds directory
+S.ImageDirectory = 'NaturalImages';%'Backgrounds'; % default is Backgrounds directory
                                    % but you can easily choose another
                                    % and place it under SupportData
   

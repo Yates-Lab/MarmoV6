@@ -50,9 +50,9 @@ P.CycleBackImage = 5;
 S.CycleBackImage = 'If def, backimage every # trials:';
 
 %******* trial timing and reward
-P.holdDur = 0.10;
+P.holdDur = 1.5;%0.10;
 S.holdDur = 'Duration at grating for reward (s):';
-P.fixRadius = 2.5;  
+P.fixRadius = 0.5;%2.5;  
 S.fixRadius = 'Probe reward radius(degs):';
 P.trialdur = 10; 
 S.trialdur = 'Trial Duration (s):';
@@ -70,9 +70,9 @@ P.faceTime = 0.1;  % duration of flashed face, in ms
 S.faceTime = 'Duration of Face Flash (s):';
 
 %************** Probe properties
-P.proberadius = 1.0;  % radius of target is dva
+P.proberadius = 0.1;%1.0;  % radius of target is dva
 S.proberadius = 'Size of Target(dva):';
-P.probecon = 1.0; %0.50; 
+P.probecon = 0.1;%1.0; %0.50; 
 S.probecon = 'Transparency of Probe (1-none, 0-gone):';
 P.proberange = 48; %a bit brighter
 S.proberange = 'Luminance range of grating (1-127):';

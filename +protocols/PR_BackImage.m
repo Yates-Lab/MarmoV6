@@ -23,6 +23,8 @@ classdef PR_BackImage < handle
     ImageFile = [];
     imo = [];  % matlab image struct
     grayscale = false
+
+    Flashtime = [];
   end
   
   methods (Access = public)
@@ -62,13 +64,20 @@ classdef PR_BackImage < handle
     end
     
     function P = next_trial(o,S,P)
+            o.Flashtime = [];
           %********************
           o.S = S;
           o.P = P;       
           %*******************
           flist = dir([o.ImageDirectory,filesep,'*.*']);
           fext = cellfun(@(x) x(strfind(x, '.'):end), {flist.name}, 'uni', 0);
-          isimg = cellfun(@(x) any(strcmp(x, {'.bmp', '.png', '.jpg', '.JPG', '.PNG'})), fext);
+          %for files with blah.blahblah.png etc
+          dotfiles=find(cellfun(@(x) contains(x(2:end),'.'), fext, 'uni', 1));
+          for ii=1:length(dotfiles)
+            fext{dotfiles(ii)}=fext{dotfiles(ii)}(strfind(fext{dotfiles(ii)}(2:end), '.')+1:end);
+          end
+
+          isimg = cellfun(@(x) any(strcmp(x, {'.bmp', '.png', '.jpg', '.jpeg', '.JPG', '.PNG'})), fext);
           flist = flist(isimg);
           
           o.closeFunc();  % clear any remaining images in memory
@@ -82,8 +91,21 @@ classdef PR_BackImage < handle
              o.imo = imread(o.ImageFile);
              
              % image can't be bigger than screen. Don't waste texture size?
-             o.imo = imresize(o.imo, S.screenRect([4 3]));
-             
+             [rows,cols,~]=size(o.imo);
+             if ~all([rows,cols]==S.screenRect([4 3]))
+                 [asp,rc]=min([rows,cols]./S.screenRect([4 3]));
+                 if rc==1 %crop cols
+                    ncols=round(S.screenRect([3])*asp);
+                    cut=(cols-ncols)/2;
+                    o.imo=o.imo(:,cut:end-cut,:);
+                 elseif rc==2 %crop rows
+                    nrows=round(S.screenRect([4])*asp);
+                    cut=(rows-nrows)/2;
+                    o.imo=o.imo(cut:end-cut,:,:);
+                 end
+                 o.imo = imresize(o.imo, S.screenRect([4 3]));
+             end
+
              if o.grayscale
                  o.imo = uint8(mean(o.imo,3));
              end
@@ -130,6 +152,14 @@ classdef PR_BackImage < handle
    
     %******************** THIS IS THE BIG FUNCTION *************
     function drop = state_and_screen_update(o,currentTime,x,y,varargin) 
+         outputs = {};
+         if ~isempty(varargin)
+             inputs=varargin{1};
+             if length(varargin)>1
+                outputs=varargin{2};
+             end
+         end 
+
         drop = 0;
         %******* THIS PART CHANGES WITH EACH PROTOCOL ****************
         if o.state == 0 && currentTime > o.startTime + o.P.imageDur
@@ -144,6 +174,12 @@ classdef PR_BackImage < handle
             Screen('DrawTextures',o.winPtr,o.ImoScreen,o.ImoRect,o.ScreenRect)  
         end 
         %**************************************************************
+
+        FrameEst=round((o.startTime-currentTime)*o.S.frameRate);
+        o.Flashtime = marmoview.updatePhotodiode(o.winPtr,o.S,outputs,FrameEst,currentTime,o.Flashtime);
+
+
+
     end
     
     function Iti = end_run_trial(o)
@@ -196,6 +232,7 @@ classdef PR_BackImage < handle
         PR.imageOff = o.imageOff;
         PR.imagefile = o.ImageFile;   % file name, if you want to load later
         PR.destRect = o.ScreenRect;
+        PR.Flashtime = o.Flashtime;
     end
     
   end % methods

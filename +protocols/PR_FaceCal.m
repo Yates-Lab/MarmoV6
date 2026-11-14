@@ -144,6 +144,43 @@ classdef PR_FaceCal < handle
               end
         end
         
+        %update and plot histogram
+        % h2=handles.DataPlot2 ;
+        % set(h2,'NextPlot','Replace');
+        % 
+        % %load data from all facecal trials
+        % lastcalib=dir('./Output/FaceCal*.mat');
+        % [~,ind]=max([lastcalib(:).datenum]);
+        % lastcalib=lastcalib(ind);
+        % load([lastcalib.folder filesep lastcalib.name])
+        %If lastcalib.name(end-4)=='z'
+            %load into  Eyefull 
+            % Eyefull=cellfun( @(x) x.eyeData, D, 'UniformOutput', false)
+        % else need to organise the trials first
+        % end
+
+        % 
+        % Eyefullmat=cell2mat(Eyefull);
+        % 
+        % %Convert to dva
+        % dx=D{end, 1}.C.dx
+        % dy=D{end, 1}.C.dy
+        % c=D{end, 1}.C.c
+        % ppd=S.pixPerDeg
+        % x = (Eyefullmat(:,2)-c(1)) / (dx*ppd);
+        % y = (Eyefullmat(:,3)-c(2)) / (dy*ppd);
+        % %%
+        % [N,Xedges,Yedges] = histcounts2(y,x,120);
+        % imagesc(Yedges,Xedges,imgaussfilt(N,.5));%hold on
+        % %scatter(x,y,'w.');  %useful to double check x/y are orientated correctly
+        % axis xy equal
+        % xlim([-12 12]);ylim([-12 12]);
+        % 
+        % %saturate out some values
+        % % clim([0 prctile(N(:),99.5)]); 
+        % hold on
+        % [X,Y] = meshgrid(-10:5:10,-10:5:10);
+        % scatter(X,Y,'w.');
     end
     
     function PR = end_plots(o,P,A)   %update D struct if passing back info     

@@ -55,13 +55,13 @@ P.eyeRadius = 2.0;
 S.eyeRadius = 'Gaze indicator radius (degrees):';
 P.eyeIntensity = 10;
 S.eyeIntensity = 'Indicator intensity:';
-P.showEye = 1;
+P.showEye = 0;
 S.showEye = 'Show the gaze indicator? (0 or 1):';
 P.bkgd = 127;
 S.bkgd = 'Choose the background color (0-255):';
 
 % Trial timing
-P.faceDur = 2;
+P.faceDur = 5;
 S.faceDur = 'Duration to display faces (s):';
 P.iti = 3;
 S.iti = 'Duration of intertrial interval (s):';

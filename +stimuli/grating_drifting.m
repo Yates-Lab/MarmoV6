@@ -125,7 +125,7 @@ classdef grating_drifting < stimuli.stimulus
             % -- should we do this for all?)
             obj.tex.screenRect = obj.screenRect;
             obj.tex.radius = round((obj.diameter/2)*obj.pixPerDeg);
-            obj.tex.pixperdeg = obj.pixPerDeg;
+            obj.tex.pixPerDeg = obj.pixPerDeg;
                         
             obj.frameUpdate = 0;
             

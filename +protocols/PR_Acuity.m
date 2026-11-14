@@ -153,6 +153,7 @@ classdef PR_Acuity < handle
           o.stimTheta = atan2(P.choiceY,P.choiceX);
 
           % Make Gabor stimulus texture
+          o.hProbe(1).pixperdeg =S.pixPerDeg;
           o.hProbe(1).position = [(S.centerPix(1) + round(P.xDeg*S.pixPerDeg)),(S.centerPix(2) - round(P.yDeg*S.pixPerDeg))];
           o.hProbe(1).radius = round(P.radius*S.pixPerDeg);
           o.hProbe(1).orientation = P.orientation; % vertical for the right
@@ -501,8 +502,10 @@ classdef PR_Acuity < handle
                 fcXxy(i) = Ncorrect/Ntotal;
             end
             % Constructs labels based on the six locations
-            if x > 0 && abs(y) < .01;       labels{i} = 'R';    end
-            if x < 0 && abs(y) < .01;       labels{i} = 'L';    end
+            if x < 0 && (y) > .01;       labels{i} = 'NW';    end
+            if x > 0 && (y) > .01;       labels{i} = 'NE';    end
+            if x < 0 && (y) < .01;       labels{i} = 'SW';    end
+            if x > 0 && (y) < .01;       labels{i} = 'SE';    end
           end
         bar(A.DataPlot2,1:nlocs,fcXxy);
         title(A.DataPlot2,'By Location');

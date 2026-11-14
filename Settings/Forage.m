@@ -11,10 +11,10 @@ S = MarmoViewRigSettings;
 
 % NOTE THE MARMOVIEW VERSION USED FOR THIS SETTINGS FILE, IF AN ERROR, IT
 % MIGHT BE A VERSION PROBLEM
-S.MarmoViewVersion = '5';
+S.MarmoViewVersion = '6';
 
 % PARAMETER DESCRIBING TRIAL NUMBER TO STOP TASK
-S.finish = 800;
+S.finish = 100;
 
 % PROTOCOL PREFIX
 S.protocol = 'Forage';
@@ -104,7 +104,7 @@ P.showEye = 0;
 S.showEye = 'Show the gaze indicator? (0 or 1):';
 
 %***** FORAGE CAN ACCEPT DIFFERENT BACKGROUND TYPES *****
-P.noisetype = 2;
+P.noisetype = 5;
 S.noisetype = 'Background (0-none,1-hartley, 2-spatial, ...):';
 
 if (P.noisetype == 1)
@@ -201,7 +201,7 @@ if (P.noisetype == 5)
     S.snoisenum = 'Number of noise ovals:';
     P.snoisediam = 1.0; %2.0; %1.0;  % diameter in dva of noise oval
     S.snoisediam = 'Diameter of noise ovals (dva): ';
-    P.snoiselife = 6;  % lifetime in video frames
+    P.snoiselife = 12;  % lifetime in video frames, 6 for 120Hz 
     S.snoiselife = 'Lifetime in frames';
     P.snoisespeed = 15;  % motion speed
     S.snoisespeed = 'Speed of dot';

@@ -251,14 +251,22 @@ classdef PR_GazeCalibRefine < protocols.protocol
         set(h,'NextPlot','Add');
         
         state2 = find(o.states(1,:)==2);
-        if ~isempty(state2)
+        if ~isempty(state2)&&size(o.states,2)==size(o.stimXY,2)
             
+%
+ %           Index in position 2 exceeds array bounds. Index must not exceed 66.
+  %          Error in protocols.PR_GazeCalibRefine/plot_trace (line 256)
+              if size(o.stimXY)<max(state2(:))
+                debug='this';
+              end
             stimXYplot = o.stimXY(:,state2);
             eyeXY0 = o.eyeXY(:,state2-1);
             eyeXYvel = o.eyeXY(:,state2) - eyeXY0;
             plot(h, stimXYplot(1,:), stimXYplot(2,:), 'ok'); hold on
             quiver(h, eyeXY0(1,:), eyeXY0(2,:), eyeXYvel(1,:), eyeXYvel(2,:), 0)
             % Stimulus window
+        else
+            debug='here';
             
         end
         

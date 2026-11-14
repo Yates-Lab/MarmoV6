@@ -13,10 +13,13 @@ classdef eyetrack_dummy < marmoview.behavior
   properties (SetAccess = public, GetAccess = public)
     EyeDump logical
     UseAsEyeTracker logical
+    ScreenNumber double = []
+    x
+    y
   end
     
     methods
-        function o = eyetrack_dummy(~,varargin) % h is the handle for the marmoview gui
+        function o = eyetrack_dummy(config,varargin) % config is the rig input settings
             
             % initialise input parser
             p = inputParser;
@@ -25,14 +28,24 @@ classdef eyetrack_dummy < marmoview.behavior
             p.parse(varargin{:});
             
             args = p.Results;
-            o = o@marmoview.behavior(varargin{:});
+            %o = o@marmoview.behavior(varargin{:});
             o.EyeDump = args.EyeDump;
             o.UseAsEyeTracker = args.UseAsEyeTracker;
+            if nargin >= 1 && isstruct(config) && ...
+                    isfield(config,'ScreenNumber') && ...
+                    ~isempty(config.ScreenNumber)
+                o.ScreenNumber = double(config.ScreenNumber);
+            end
+
+
             
             % configure the tracker and initialize...
         end
         
         function init(~,~)
+        end
+        
+        function readinput(self,~)
         end
 
         function startfile(~,~)
@@ -42,27 +55,39 @@ classdef eyetrack_dummy < marmoview.behavior
         function closefile(~)
         end
         
-        function unpause(~)
+        function unpause(self,~)
         end
         
         function pause(~)
         end
         
-        function starttrial(~,varargin) %should be just two inputs but (~,~) throws an error?
+        function starttrial(~,~,varargin) %should be just two inputs but (~,~) throws an error?
         end
 
         function drop = afterFrame(~,varargin) %(~,currenttime,drop)
             drop=varargin{2};
         end
         
-        function endtrial(~,varargin)
+        function endtrial(~,~,varargin)
         end
 
         function close(~)
         end
         
-        function [x,y] = getgaze(~)
-            [x,y] = GetMouse;
+        function [x,y] = getgaze(self,~)
+            if isempty(self.ScreenNumber)
+                [x,y] = GetMouse;
+            else
+                [x,y] = GetMouse(self.ScreenNumber);
+            end
+            self.x = x;
+            self.y = y;     
+            %other specs depend on screen and position
+        end
+        
+        function [x,y] = getinput(self,~)
+            x = self.x;
+            y = self.y;
             %other specs depend on screen and position
         end
         
@@ -73,6 +98,18 @@ classdef eyetrack_dummy < marmoview.behavior
         function sendcommand(~,~,~)
         end
         
+        function C=calibinit(~,S)
+            cx = round((S.screenRect(3)-S.screenRect(1))/2) + S.screenRect(1);
+            cy = round((S.screenRect(4)-S.screenRect(2))/2) + S.screenRect(2);
+            dx = 1;   % stay in pixel coordinates
+            dy = -1;  % in pixel coordinates, don't scale, but do invert y
+            C.dx = dx;
+            C.dy = dy;
+            C.c = [cx cy];
+        end
+
+
+
     end % methods
     
     methods (Access = private)

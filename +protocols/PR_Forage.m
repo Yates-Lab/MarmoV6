@@ -11,6 +11,8 @@ classdef PR_Forage < handle
        rewardCount double = 0;     % counter for reward drops
        rewardGap double = 0;       % gap for next target onset
        rewardTime double = 0;      % store time of last reward
+       %**** Photodiode flash timing
+       Flashtime = [];
   end
       
   properties (Access = private)
@@ -290,7 +292,116 @@ classdef PR_Forage < handle
            %************
        end
        %**********************************************************
-       
+      %******** Back image set
+      if (o.noisetype == 16) % use images
+
+          % We should put this into a hNoise handle as a .stimuli type and
+          % include addtional parameters                    
+          %         'durationOn', P.DurOn, ...
+                    % 'durationOff', P.DurOff, ...
+                    % 'isiJitter', P.ISIjit, ...
+          % copy paste init
+
+          o.ImoScreen = [];
+          o.ImageDirectory = S.ImageDirectory;
+          if isfield(P, 'useGrayScale')
+              o.grayscale = P.useGrayScale;
+          end
+
+          o.MaxFrame = ceil(220*S.frameRate); %108 seconds *2 +buffer
+          o.ImageHistory = nan(o.MaxFrame,3);
+
+          % Load up images once only, park them as textures on Graphics
+          % memory rather than loading them per trial
+
+          %********************
+          o.S = S;
+          o.P = P;
+          %*******************
+          flist = dir([o.ImageDirectory,filesep,'*.*']);
+          fext = cellfun(@(x) x(strfind(x, '.'):end), {flist.name}, 'uni', 0);
+          %for files with blah.blahblah.png etc
+          dotfiles=find(cellfun(@(x) contains(x(2:end),'.'), fext, 'uni', 1));
+          for ii=1:length(dotfiles)
+              fext{dotfiles(ii)}=fext{dotfiles(ii)}(strfind(fext{dotfiles(ii)}(2:end), '.')+1:end);
+          end
+
+          isimg = cellfun(@(x) any(strcmp(x, {'.bmp', '.png', '.jpg', '.jpeg', '.JPG', '.PNG'})), fext);
+          flist = flist(isimg);
+
+          o.closeFunc();  % clear any remaining images in memory
+          % before you allocated more (one per time)
+
+          %Random draw from files
+          for ii= 1:o.P.nImages
+              %******************
+              if (~isempty(flist))
+                  % We need to be careful about randomising here if we are also
+                  % going to randomise later
+                  fimo = ii;%1 + floor( (rand * 0.99) * size(flist,1) );
+                  fname = flist(fimo).name;  % name of an image
+                  o.ImageFile{ii} = [o.ImageDirectory,filesep,fname];
+                  o.imo{ii} = imread(o.ImageFile{ii});
+
+                  % image can't be bigger than screen. Don't waste texture size?
+                  [rows,cols,~]=size(o.imo{ii});
+                  if ~all([rows,cols]==S.screenRect([4 3]))
+                      [asp,rc]=min([rows,cols]./S.screenRect([4 3]));
+                      if rc==1 %crop cols
+                          ncols=round(S.screenRect([3])*asp);
+                          cut=(cols-ncols)/2;
+                          o.imo{ii}=o.imo{ii}(:,cut:end-cut,:);
+                      elseif rc==2 %crop rows
+                          nrows=round(S.screenRect([4])*asp);
+                          cut=(rows-nrows)/2;
+                          o.imo{ii}=o.imo{ii}(cut:end-cut,:,:);
+                      end
+                      o.imo{ii} = imresize(o.imo{ii}, S.screenRect([4 3]));
+                  end
+
+                  if o.grayscale
+                      o.imo{ii} = uint8(mean(o.imo{ii},3));
+                  end
+                  %******* insert image in middle texture
+                  o.ImoScreen(ii) = Screen('MakeTexture',o.winPtr,o.imo{ii});
+                  o.ImoRect = [0 0 size(o.imo{ii},2) size(o.imo{ii},1)];
+                  o.ScreenRect = S.screenRect;
+              end
+          end
+
+          aspectRatio = size(o.imo{1},1)./size(o.imo{1},2);
+
+          % check if there are size and position variables
+          if isfield(P, 'imageSizes') && isfield(P, 'imageCtrX') && isfield(P, 'imageCtrY')
+              imWidthDeg = randsample(P.imageSizes, 1);
+              imWidthPx = S.pixPerDeg * imWidthDeg;
+              imHeightPx = aspectRatio * imWidthPx;
+
+              ctr = S.centerPix + [P.imageCtrX P.imageCtrY]*S.pixPerDeg;
+              o.ScreenRect = CenterRectOnPoint([0 0 imWidthPx imHeightPx], ctr(1), ctr(2));
+          end
+           % o.noiseNum = P.snoisenum;
+           % o.NoiseHistory = zeros(o.MaxFrame,(1+(o.noiseNum * 4)));  % store time, then x,y,dir,life positions
+           % o.hNoise = zeros(5,o.noiseNum);
+           % %****** initialize dots and lifetimes
+           % for kk = 1:o.noiseNum
+           %     %*******
+           %     sx = (rand - 0.5) * 2 * P.snoisewidth;
+           %     sy = (rand - 0.5) * 2 * P.snoiseheight;
+           %     o.hNoise(1,kk) = sx;
+           %     o.hNoise(2,kk) = sy;
+           %     dir = randi(P.snoisedirs);
+           %     o.hNoise(5,kk) = dir;
+           %     ang = (dir-1)*((2*pi)/P.snoisedirs);
+           %     o.hNoise(3,kk) = (P.snoisespeed / S.frameRate) * cos(ang);
+           %     o.hNoise(4,kk) = (P.snoisespeed / S.frameRate) * sin(ang);
+           %     life = mod(kk, P.snoiselife);
+           %     o.hNoise(6,kk) = life;
+           %     %***********
+           % end      
+           %************
+       end
+       %**********************************************************
     end
    
     function closeFunc(o),
@@ -547,6 +658,26 @@ classdef PR_Forage < handle
                 o.NoiseHistory(o.FrameCount,:) = [NaN nlist];  % first element time, others x,y positions
                 %********** 
             end
+            if (o.noisetype == 16) % Backimage sequence
+
+
+
+                % kk = 0;
+                % if (rand < o.P.probNoise)  % fraction of grating noise impulses
+                %    kk = randi(o.noiseNum);
+                %    if ~isnan(xx) && ~isnan(yy)
+                %       o.hNoise{kk}.position = [(o.S.centerPix(1) + round(xx*o.S.pixPerDeg)),(o.S.centerPix(2) - round(yy*o.S.pixPerDeg))];
+                %    else
+                %       o.hNoise{kk}.position = o.S.centerPix; 
+                %    end    
+                %    o.hNoise{kk}.beforeFrame();
+                % end
+                %**********
+                o.FrameCount = o.FrameCount + 1;
+                % NOTE: store screen time in "continue_run_trial" after flip
+                o.NoiseHistory(o.FrameCount,2) = kk;  % store orientation number
+                %**********
+            end
          end
     end    
     
@@ -728,7 +859,19 @@ classdef PR_Forage < handle
         if (o.state == 3) 
            o.Faces.beforeFrame(); 
         end
-        %****************************************   
+        %**************************************** 
+
+         % %% PHOTODIODE FLASH, move to frame control(?)
+%         %DPR - 5/5/2023
+        if isfield(o.S,'photodiode')
+            if rem(o.FrameCount,o.S.frameRate/o.S.photodiode.TF)==1 % first frame flash photodiode
+                Screen('FillRect',o.winPtr,o.S.photodiode.flash,o.S.photodiode.rect)
+            else
+                Screen('FillRect',o.winPtr,o.S.photodiode.init,o.S.photodiode.rect)
+            end
+       % disp(rem(o.FrameCount,o.S.frameRate/o.S.photodiode.TF))
+        end
+       
     end
     
     function Iti = end_run_trial(o)
