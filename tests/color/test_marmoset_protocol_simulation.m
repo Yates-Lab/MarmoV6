@@ -7,7 +7,7 @@ function test_marmoset_protocol_simulation
 % visible. Every twelfth trial loses the eye for 0.5 s. The saved trials
 % are then analyzed blind.
 
-taskRoot = fileparts(fileparts(mfilename('fullpath')));
+taskRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 addpath(fullfile(taskRoot,'Analysis'));
 stubFolder = tempname;
 mkdir(stubFolder);

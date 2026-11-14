@@ -28,7 +28,7 @@ options = setDefault(options,'StimulusSeconds',1);
 options = setDefault(options,'CaptureFrame',20);
 options = setDefault(options,'RequireHardwareGammaCheck',true);
 
-taskRoot = fileparts(fileparts(mfilename('fullpath')));
+taskRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 previousFolder = cd(taskRoot);
 cleanupFolder = onCleanup(@() cd(previousFolder));
 

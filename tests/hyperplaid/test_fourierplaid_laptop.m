@@ -4,7 +4,7 @@ function report = test_fourierplaid_laptop(outputFolder, interactiveSeconds)
 if nargin < 1, outputFolder = fullfile(tempdir,'marmov6_spiral_laptop'); end
 if nargin < 2, interactiveSeconds = 120; end
 if ~exist(outputFolder,'dir'), mkdir(outputFolder); end
-root = fileparts(fileparts(mfilename('fullpath')));
+root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 addpath(fullfile(root,'Settings'),fullfile(root,'RigSettings'));
 S = MarmoViewRigSettings;
 assert(S.DummyScreen && strcmp(S.monitor,'Laptop'), ...

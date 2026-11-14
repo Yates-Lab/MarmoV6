@@ -1,7 +1,7 @@
 function test_human_cone_check
 % Human L/M cone-check bank, trial plan, and blinded simulated observers.
 
-taskRoot = fileparts(fileparts(mfilename('fullpath')));
+taskRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 addpath(fullfile(taskRoot,'Analysis'));
 calibration = syntheticHumanCalibration();
 bank = marmoview.humanConeCheckConditionBank(calibration);

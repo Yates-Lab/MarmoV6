@@ -5,7 +5,7 @@ if nargin < 1 || isempty(sourceRoot)
     sourceRoot = fullfile('C:\Users\Declan\Documents\2026', ...
         'ConeColorMath','Dummy_DELL_P2419HC_proxy');
 end
-taskRoot = fileparts(fileparts(mfilename('fullpath')));
+taskRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 if nargin < 2 || isempty(outputFile)
     outputFile = fullfile(taskRoot,'SupportData','ConeCalibration', ...
         'HumanIsoluminantML','ConeMath2026_proxy_results.mat');

@@ -2,7 +2,7 @@ function test_analyze_marmoset_cone_phenotype_flow
 % Simulated blinded sessions: each phenotype's choices are generated from the
 % observer model, then analyzed without the phenotype being supplied.
 
-taskRoot = fileparts(fileparts(mfilename('fullpath')));
+taskRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 analysisPath = fullfile(taskRoot,'Analysis');
 addpath(analysisPath);
 cleanup = onCleanup(@() rmpath(analysisPath));
